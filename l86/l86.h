@@ -5,6 +5,7 @@
 #include "swo.h"
 #include <cstdio>
 #include <cstdlib>
+#include <cstdarg>
 
 using namespace sixtron;
 
@@ -115,19 +116,34 @@ class L86
        char* get_longitude();
 
        /*!
-        *  Select a satellite system
+        *  Select satellite systems
         *
-        *  \param satellite_system (GPS, GLONASS, GALILEO, BEIDOU)
+        *  It's necessary to indicates the number of satellite systems
+        *  that you want to use and after to enter them.
+        *  Example : set_satellite_system(2,  L86::SatelliteSystem::GPS, L86::SatelliteSystem::GLONASS)
+        *
+        *  \param count : Number of satellite systems
+        *  \param satellite_system : GPS, GLONASS, GALILEO, BEIDOU
+        *
         */
-       void set_satellite_system(SatelliteSystem satellite_system);
+       void set_satellite_system(unsigned char count, ...);
 
        /*!
         *  Select NMEA output frequencies
         *
-        *  \param nmea_trame (RMC, VTG, GGA, GSA, GSV, GLL)
+        *  It's necessary to indicates the number of nmea trame types
+        *  that you wan't to receive. After, you need to enter FIRST the
+        *  frequency and then the nmea trame type.
+        *
+        *  Example : l86.set_nmea_output_frequency(2, L86::NmeaFrequency::FIVE_POSITION_FIXES, L86::NmeaCommandType::RMC,
+        *  										   L86::NmeaFrequency::TWO_POSITION_FIXES, L86::NmeaCommandType::GSV);
+        *
+        *  \param count : Number of nmea trame types configured
         *  \param frequency
+        *  \param nmea_trame : RMC, VTG, GGA, GSA, GSV, GLL
+
         */
-       void set_nmea_output_frequency(NmeaCommandType nmea_trame, NmeaFrequency frequency);
+       void set_nmea_output_frequency(unsigned char count, ...);
 
        /*!
         *  Select navigation mode
