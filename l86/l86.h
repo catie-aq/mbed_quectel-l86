@@ -4,6 +4,7 @@
 #include "mbed.h"
 #include <cstdio>
 #include <cstdlib>
+#include <cstdarg>
 
 using namespace sixtron;
 
@@ -185,7 +186,6 @@ public:
 
     void start_attach();
     void stop_attach();
-
 };
 
 #endif /* CATIE_SIXTRON_L86_H_ */

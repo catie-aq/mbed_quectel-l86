@@ -437,6 +437,7 @@ void L86::callback_rx(void)
         index_carac = 0;
     }
 }
+
 void L86::update_informations(NmeaCommandType response_type, char **parameters)
 {
     switch (response_type) {
