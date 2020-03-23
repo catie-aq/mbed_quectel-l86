@@ -2,7 +2,6 @@
 #define CATIE_SIXTRON_L86_H_
 
 #include "mbed.h"
-#include "swo.h"
 #include <cstdio>
 #include <cstdlib>
 

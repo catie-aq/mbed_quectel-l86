@@ -26,7 +26,6 @@ void L86::stop_attach()
 void L86::write_pmtk_message(Pmtk_message message)
 {
     /* Formation de le trame PMTK */
-    SWO swo;
     char packet[100];
     char packet_temp[100];
     sprintf(packet, "$PMTK%c%c%c", message.packet_type[0], message.packet_type[1], message.packet_type[2]);
@@ -43,8 +42,6 @@ void L86::write_pmtk_message(Pmtk_message message)
 
     sprintf(packet, "%s%X\r\n", packet_temp, checksum);
 
-    swo.printf("L86::write_pmtk_message : %s\n", packet);
-
     /* Send packet until received ack and get confirmation that command succeeds */
     do {
         _uart->write((uint8_t *)packet, strlen(packet), NULL);
@@ -60,12 +57,10 @@ void L86::write_pmtk_message(Pmtk_message message)
                     index++;
                 }
             }
-            swo.printf("L86::write_pmtk_message : Message : %s\n", ack);
             if (ack[5] == '0' && ack[6] == '0' && ack[7] == '1') {  /* ack trame */
                 _waiting_ack = false;
                 if (ack[9] == message.packet_type[0] && ack[10] == message.packet_type[1] && ack[11] == message.packet_type[2]) {
                     if (ack[13] == '3') {
-                        swo.printf("L86::write_pmtk_message : Ack received\n");
                         _pmtk_command_result = true;
                     }
                 }
@@ -203,7 +198,6 @@ void L86::set_navigation_mode(NavigationMode navigation_mode)
 
 void L86::set_position_fix_interval(uint16_t interval)
 {
-    SWO swo;
     Pmtk_message message;
     message.packet_type[0] = '2';
     message.packet_type[1] = '2';
@@ -231,7 +225,6 @@ void L86::set_position_fix_interval(uint16_t interval)
         message.parameters[0][i] = s_interval[i];
     }
     message.parameters[0][size] = '\0';
-    swo.printf("L86::set_position_fix_interval : Parametre : %s\n", message.parameters[0]);
 
     message.ack = true;
     write_pmtk_message(message);
@@ -282,8 +275,6 @@ void L86::set_satellite_system(SatelliteSystem satellite_system)
     message.ack = true;
 
     this->write_pmtk_message(message);
-
-    /* free(message.parameters); */
 }
 
 void L86::start(StartMode start_mode)
