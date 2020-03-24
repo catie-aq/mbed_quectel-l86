@@ -83,7 +83,7 @@ char *L86::get_latitude()
     return (char *) this->latitude;
 }
 
-void L86::set_nmea_output_frequency(NmeaCommands nmea_command, NmeaFrequency frequency)
+void L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency)
 {
     Pmtk_message message;
 
@@ -116,37 +116,37 @@ void L86::set_nmea_output_frequency(NmeaCommands nmea_command, NmeaFrequency fre
         *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
     }
 
-    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::GLL))) {
+    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GLL))) {
         message.parameters[0] = (char *)c_frequency;
     } else {
         message.parameters[0] = (char *)"0";
     }
 
-    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::RMC))) {
+    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::RMC))) {
         message.parameters[1] = (char *)c_frequency;
     } else {
         message.parameters[1] = (char *)"0";
     }
 
-    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::VTG))) {
+    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::VTG))) {
         message.parameters[2] = (char *)c_frequency;
     } else {
         message.parameters[2] = (char *)"0";
     }
 
-    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::GGA))) {
+    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GGA))) {
         message.parameters[3] = (char *)c_frequency;
     } else {
         message.parameters[3] = (char *)"0";
     }
 
-    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::GSA))) {
+    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSA))) {
         message.parameters[4] = (char *)c_frequency;
     } else {
         message.parameters[4] = (char *)"0";
     }
 
-    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::GSV))) {
+    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSV))) {
         message.parameters[5] = (char *)c_frequency;
     } else {
         message.parameters[5] = (char *)"0";

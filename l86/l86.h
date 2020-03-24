@@ -133,7 +133,7 @@ public:
      *  \param nmea_trame (RMC, VTG, GGA, GSA, GSV, GLL)
      *  \param frequency
      */
-    void set_nmea_output_frequency(NmeaCommands nmea_trame, NmeaFrequency frequency);
+    void set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency);
 
     /*!
      *  Select navigation mode
