@@ -13,12 +13,12 @@ L86::L86(RawSerial *uart)
 
 }
 
-void L86::start_attach()
+void L86::start_receive()
 {
     this->_uart->attach(callback(this, &L86::callback_rx), RawSerial::RxIrq);
 }
 
-void L86::stop_attach()
+void L86::stop_receive()
 {
     this->_uart->attach(NULL);
 }
@@ -276,6 +276,11 @@ void L86::set_satellite_system(SatelliteSystems satellite_systems)
     message.ack = true;
 
     this->write_pmtk_message(message);
+
+    for (int i = 0 ; i < message.nb_param ; i++) {
+        free(message.parameters[i]);
+        message.parameters[i] = NULL;
+    }
 }
 
 void L86::start(StartMode start_mode)
@@ -312,6 +317,7 @@ void L86::start(StartMode start_mode)
     message.ack = false;
 
     this->write_pmtk_message(message);
+    this->start_receive();
 }
 
 void L86::standby_mode(StandbyMode standby_mode)
@@ -352,15 +358,13 @@ void L86::standby_mode(StandbyMode standby_mode)
             message.parameters[0] = (char *)"9";
             break;
     }
-    /* use default values */
-    /*
-    sprintf(message.parameters[1], "200000");
-    sprintf(message.parameters[2], "200000");
-    sprintf(message.parameters[3], "400000");
-    sprintf(message.parameters[4], "400000");
-     */
 
     this->write_pmtk_message(message);
+
+    for (int i = 0 ; i < message.nb_param ; i++) {
+        free(message.parameters[i]);
+        message.parameters[i] = NULL;
+    }
 }
 
 void L86::callback_rx(void)
@@ -436,26 +440,6 @@ void L86::callback_rx(void)
         memset(reponse, 0, 120);
         memset(parameters, 0, (size_t)(sizeof(parameters[0][0]) * 19 * 10));
         index_carac = 0;
-    }
-}
-
-void L86::update_informations(NmeaCommandType response_type, char **parameters)
-{
-    switch (response_type) {
-        case NmeaCommandType::RMC:
-            sprintf(this->longitude, "%s%c", parameters[4], parameters[5][0]);
-            sprintf(this->latitude, "%s%c", parameters[2], parameters[3][0]);
-            break;
-
-        case NmeaCommandType::GGA:
-            sprintf(this->longitude, "%s%c", parameters[3], parameters[4][0]);
-            sprintf(this->latitude, "%s%c", parameters[1], parameters[2][0]);
-            break;
-
-        case NmeaCommandType::GLL:
-            sprintf(this->longitude, "%s%c", parameters[2], parameters[3][0]);
-            sprintf(this->latitude, "%s%c", parameters[0], parameters[1][0]);
-            break;
     }
 }
 

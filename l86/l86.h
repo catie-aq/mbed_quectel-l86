@@ -4,8 +4,8 @@
 #include "mbed.h"
 #include <cstdio>
 #include <cstdlib>
-#include <cstdarg>
 #include <bitset>
+
 
 typedef struct {
     char packet_type[3];
@@ -30,13 +30,38 @@ private:
     char *longitude;
     char *latitude;
 
-protected:
-
     /*!
      * Callback triggered when a caracter is received by UART
      *
      */
     void callback_rx(void);
+
+    /*!
+     *  Write a PMTK message which permit to configure the L86 module
+     *
+     *  \param message : PMTK message object which contains all necessary informations to send to the L86 module
+     *
+     */
+    void write_pmtk_message(Pmtk_message message);
+
+    /*!
+     *  Calculate the message checksum
+     *
+     *  \param message PMTK message from which we calculate the checksum
+     *
+     */
+    unsigned char calculate_checksum(char *message);
+
+    /*!
+     *  Start receiving message from L86 module
+     *
+     */
+    void start_receive();
+
+    /*!
+     *  Stop receiving message from L86 module
+     */
+    void stop_receive();
 
 public:
 
@@ -149,14 +174,6 @@ public:
     void set_position_fix_interval(uint16_t interval);
 
     /*!
-     *  Write a PMTK message which permit to configure the L86 module
-     *
-     *  \param message : PMTK message object which contains all necessary informations to send to the L86 module
-     *
-     */
-    void write_pmtk_message(Pmtk_message message);
-
-    /*!
      *  Start the L86 module in the specified mode
      *
      *  \param start_mode (full cold, cold, warm, hot)
@@ -171,26 +188,10 @@ public:
     void standby_mode(StandbyMode standby_mode);
 
     /*!
-     *  Update latitude and longitude values
-     *
-     *  \param response_type : NMEA command received type (RMC, VTG, GGA, GSA, GSV, GLL)
-     *  \param parameters : every parameters received in the NMEA message
-     */
-    void update_informations(NmeaCommandType response_type, char **parameters);
-
-    /*!
-     *  Calculate the message checksum
-     *
-     *  \param message PMTK message from which we calculate the checksum
+     *  Get last received command from the L86 module
      *
      */
-    unsigned char calculate_checksum(char *message);
-
     char *get_last_received_command();
-
-
-    void start_attach();
-    void stop_attach();
 
 };
 
