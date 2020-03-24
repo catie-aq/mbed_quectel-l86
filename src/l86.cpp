@@ -83,7 +83,7 @@ char *L86::get_latitude()
     return (char *) this->latitude;
 }
 
-void L86::set_nmea_output_frequency(NmeaCommandType nmea_trame, NmeaFrequency frequency)
+void L86::set_nmea_output_frequency(NmeaCommands nmea_command, NmeaFrequency frequency)
 {
     Pmtk_message message;
 
@@ -116,37 +116,37 @@ void L86::set_nmea_output_frequency(NmeaCommandType nmea_trame, NmeaFrequency fr
         *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
     }
 
-    if (nmea_trame == NmeaCommandType::GLL) {
+    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::GLL))) {
         message.parameters[0] = (char *)c_frequency;
     } else {
         message.parameters[0] = (char *)"0";
     }
 
-    if (nmea_trame == NmeaCommandType::RMC) {
+    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::RMC))) {
         message.parameters[1] = (char *)c_frequency;
     } else {
         message.parameters[1] = (char *)"0";
     }
 
-    if (nmea_trame == NmeaCommandType::VTG) {
+    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::VTG))) {
         message.parameters[2] = (char *)c_frequency;
     } else {
         message.parameters[2] = (char *)"0";
     }
 
-    if (nmea_trame == NmeaCommandType::GGA) {
+    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::GGA))) {
         message.parameters[3] = (char *)c_frequency;
     } else {
         message.parameters[3] = (char *)"0";
     }
 
-    if (nmea_trame == NmeaCommandType::GSA) {
+    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::GSA))) {
         message.parameters[4] = (char *)c_frequency;
     } else {
         message.parameters[4] = (char *)"0";
     }
 
-    if (nmea_trame == NmeaCommandType::GSV) {
+    if (nmea_command.test(static_cast<size_t>(NmeaCommandType::GSV))) {
         message.parameters[5] = (char *)c_frequency;
     } else {
         message.parameters[5] = (char *)"0";
@@ -230,8 +230,9 @@ void L86::set_position_fix_interval(uint16_t interval)
     write_pmtk_message(message);
 }
 
-void L86::set_satellite_system(SatelliteSystem satellite_system)
+void L86::set_satellite_system(SatelliteSystems satellite_systems)
 {
+
     Pmtk_message message;
     message.packet_type[0] = '3';
     message.packet_type[1] = '5';
@@ -242,31 +243,31 @@ void L86::set_satellite_system(SatelliteSystem satellite_system)
     for (int i = 0 ; i < message.nb_param ; i++) {
         *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
     }
-    if (satellite_system == SatelliteSystem::GPS) {
+    if(satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
         message.parameters[0] = (char *)"1";
     } else {
         message.parameters[0] = (char *)"0";
     }
 
-    if (satellite_system == SatelliteSystem::GLONASS) {
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GLONASS))) {
         message.parameters[1] = (char *)"1";
     } else {
         message.parameters[1] = (char *)"0";
     }
 
-    if (satellite_system == SatelliteSystem::GALILEO) {
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO))) {
         message.parameters[2] = (char *)"1";
     } else {
         message.parameters[2] = (char *)"0";
     }
 
-    if (satellite_system == SatelliteSystem::GALILEO_FULL) {
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO_FULL))) {
         message.parameters[3] = (char *)"1";
     } else {
         message.parameters[3] = (char *)"0";
     }
 
-    if (satellite_system == SatelliteSystem::BEIDOU) {
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::BEIDOU))) {
         message.parameters[4] = (char *)"1";
     } else {
         message.parameters[4] = (char *)"0";
