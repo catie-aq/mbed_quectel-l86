@@ -8,7 +8,7 @@
 #include <bitset>
 
 #define SATELLITE_SYSTEMS_COUNT 5
-#define NMEA_COMMANDS_COUNT 5
+#define NMEA_COMMANDS_COUNT 6
 
 typedef struct {
     char packet_type[3];
