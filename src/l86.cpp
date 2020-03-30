@@ -48,19 +48,19 @@ void L86::write_pmtk_message(Pmtk_message message)
         if (message.ack) {
             _waiting_ack = true;
             _pmtk_command_result = false;
-            char ack[50];
+            char ack_message[50];
             unsigned char index = 0;
             while (index < message.anwser_size) {
-                char carac = _uart->getc();
-                if ((carac == '$' && index == 0) || (carac != '$' && index != 0)) {
-                    ack[index] = carac;
+                char received_character = _uart->getc();
+                if ((received_character == '$' && index == 0) || (received_character != '$' && index != 0)) {
+                    ack_message[index] = received_character;
                     index++;
                 }
             }
-            if (ack[5] == '0' && ack[6] == '0' && ack[7] == '1') {  /* ack trame */
+            if (ack_message[5] == '0' && ack_message[6] == '0' && ack_message[7] == '1') {  /* ack trame */
                 _waiting_ack = false;
-                if (ack[9] == message.packet_type[0] && ack[10] == message.packet_type[1] && ack[11] == message.packet_type[2]) {
-                    if (ack[13] == '3') {
+                if (ack_message[9] == message.packet_type[0] && ack_message[10] == message.packet_type[1] && ack_message[11] == message.packet_type[2]) { /* Good command ack ? */
+                    if (ack_message[13] == '3') { /* Command succeeds ? */
                         _pmtk_command_result = true;
                     }
                 }
