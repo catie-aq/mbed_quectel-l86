@@ -10,7 +10,6 @@ L86::L86(RawSerial *uart)
     this->_current_pmtk_command_code[2] = 0;
     this->_pmtk_command_result = false;
     _uart = uart;
-
 }
 
 void L86::start_receive()
@@ -28,7 +27,7 @@ void L86::write_pmtk_message(Pmtk_message message)
     /* Formation de le trame PMTK */
     char packet[100];
     char packet_temp[100];
-    sprintf(packet, "$PMTK%c%c%c", message.packet_type[0], message.packet_type[1], message.packet_type[2]);
+    sprintf(packet, "$PMTK%c%c%c", message.packet_cur_car[0], message.packet_type[1], message.packet_type[2]);
 
     for (int i = 0 ; i < message.nb_param ; i++) {
         sprintf(packet_temp, "%s", packet);
@@ -57,10 +56,10 @@ void L86::write_pmtk_message(Pmtk_message message)
                     index++;
                 }
             }
-            if (ack_message[5] == '0' && ack_message[6] == '0' && ack_message[7] == '1') {  /* ack trame */
+            if (ack_message[5] == '0' && ack_message[6] == '0' && ack_message[7] == '1') {  /* ack frame */
                 _waiting_ack = false;
                 if (ack_message[9] == message.packet_type[0] && ack_message[10] == message.packet_type[1] && ack_message[11] == message.packet_type[2]) { /* Good command ack ? */
-                    if (ack_message[13] == '3') { /* Command succeeds ? */
+                    if (ack_message[13] == '3') { /* Command succeeds */
                         _pmtk_command_result = true;
                     }
                 }
@@ -369,44 +368,42 @@ void L86::standby_mode(StandbyMode standby_mode)
 
 void L86::callback_rx(void)
 {
-    static unsigned char index_carac = 0;
-    static char reponse[120];
-    static int cpt_trame_recu = 0;
-    volatile int type = 0;
+    static unsigned char index_car = 0;
+    static char answer[120];
     char parameters[19][10] = {0};
     NmeaCommandType response_type;
 
-    char carac = _uart->getc();
-    if ((index_carac == 0 && carac == '$') || (index_carac != 0 && carac != '$')) {
-        reponse[index_carac] = carac;
-        index_carac++;
+    char cur_car = _uart->getc();
+    if ((index_car == 0 && cur_car == '$') || (index_car != 0 && cur_car != '$')) {
+        answer[index_car] = cur_car;
+        index_car++;
     }
-    if (reponse[index_carac - 1] == '\n') { /* Complete received */
-        strcpy((char *)_last_received_command, (char *)reponse);
-        if (reponse[1] == 'G') {                  /* Trames NMEA */
-            if (reponse[3] == 'R') {                                  /* RMC */
+    if (answer[index_car - 1] == '\n') { /* Complete received */
+        strcpy((char *)_last_received_command, (char *)answer);
+        if (answer[1] == 'G') {                  /* Trames NMEA */
+            if (answer[3] == 'R') {                                  /* RMC */
                 response_type = NmeaCommandType::RMC;
-            } else if (reponse[3] == 'V') {                           /* VTG */
+            } else if (answer[3] == 'V') {                           /* VTG */
                 response_type = NmeaCommandType::VTG;
-            } else if (reponse[3] == 'G' && reponse[4] == 'G') { /* GGA */
+            } else if (answer[3] == 'G' && answer[4] == 'G') { /* GGA */
                 response_type = NmeaCommandType::GGA;
-            } else if (reponse[3] == 'G' && reponse[5] == 'A') { /* GSA */
+            } else if (answer[3] == 'G' && answer[5] == 'A') { /* GSA */
                 response_type = NmeaCommandType::GSA;
-            } else if (reponse[3] == 'G' && reponse[5] == 'V') { /* GSV */
+            } else if (answer[3] == 'G' && answer[5] == 'V') { /* GSV */
                 response_type = NmeaCommandType::GSV;
-            } else if (reponse[3] == 'G' && reponse[5] == 'L') {  /* GLL */
+            } else if (answer[3] == 'G' && answer[5] == 'L') {  /* GLL */
                 response_type = NmeaCommandType::GLL;
             }
 
             /* Parse arguments */
             int index_argument = 0;
             unsigned char i = 0;
-            for (int index = 7 ; reponse[index] != '*' ; index++) {
-                if (reponse[index] == ',') {
+            for (int index = 7 ; answer[index] != '*' ; index++) {
+                if (answer[index] == ',') {
                     index_argument++;
                     i = 0;
                 } else {
-                    parameters[index_argument][i] = reponse[index];
+                    parameters[index_argument][i] = answer[index];
                     i++;
                 }
             }
@@ -428,18 +425,18 @@ void L86::callback_rx(void)
                     sprintf(this->latitude, "%s%c", parameters[0], parameters[1][0]);
                     break;
             }
-        } else if (reponse[1] == 'P' && _waiting_ack == true) {     /* Trames PMTK */
-            if (reponse[9] == _current_pmtk_command_code[0] && reponse[10] == _current_pmtk_command_code[1] && reponse[11] == _current_pmtk_command_code[2]) {
-                char flag = reponse[12];
+        } else if (answer[1] == 'P' && _waiting_ack == true) {     /* Trames PMTK */
+            if (answer[9] == _current_pmtk_command_code[0] && answer[10] == _current_pmtk_command_code[1] && answer[11] == _current_pmtk_command_code[2]) {
+                char flag = answer[12];
                 _waiting_ack = false;
                 if (flag == '3') {
                     _pmtk_command_result = true;
                 }
             }
         }
-        memset(reponse, 0, 120);
+        memset(answer, 0, 120);
         memset(parameters, 0, (size_t)(sizeof(parameters[0][0]) * 19 * 10));
-        index_carac = 0;
+        index_car = 0;
     }
 }
 
