@@ -27,7 +27,7 @@ void L86::write_pmtk_message(Pmtk_message message)
     /* Formation de le trame PMTK */
     char packet[100];
     char packet_temp[100];
-    sprintf(packet, "$PMTK%c%c%c", message.packet_cur_car[0], message.packet_type[1], message.packet_type[2]);
+    sprintf(packet, "$PMTK%c%c%c", message.packet_type[0], message.packet_type[1], message.packet_type[2]);
 
     for (int i = 0 ; i < message.nb_param ; i++) {
         sprintf(packet_temp, "%s", packet);

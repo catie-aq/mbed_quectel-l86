@@ -7,61 +7,8 @@
 #include <bitset>
 
 
-typedef struct {
-    char packet_type[3];
-    bool is_command;
-    uint8_t nb_param;
-    uint8_t anwser_size = 19;
-    char **parameters;
-    bool ack;
-} Pmtk_message;
-
 class L86
 {
-
-private:
-    RawSerial *_uart;
-    bool _waiting_ack;
-    char _current_pmtk_command_code[3];
-    char _last_received_command[120];
-    bool _pmtk_command_result;
-
-    /* Position attributes */
-    char *longitude;
-    char *latitude;
-
-    /*!
-     * Callback triggered when a caracter is received by UART
-     *
-     */
-    void callback_rx(void);
-
-    /*!
-     *  Write a PMTK message which permit to configure the L86 module
-     *
-     *  \param message : PMTK message object which contains all necessary informations to send to the L86 module
-     *
-     */
-    void write_pmtk_message(Pmtk_message message);
-
-    /*!
-     *  Calculate the message checksum
-     *
-     *  \param message PMTK message from which we calculate the checksum
-     *
-     */
-    unsigned char calculate_checksum(char *message);
-
-    /*!
-     *  Start receiving message from L86 module
-     *
-     */
-    void start_receive();
-
-    /*!
-     *  Stop receiving message from L86 module
-     */
-    void stop_receive();
 
 public:
 
@@ -193,6 +140,59 @@ public:
      */
     char *get_last_received_command();
 
+private:
+
+    RawSerial *_uart;
+    bool _waiting_ack;
+    char _current_pmtk_command_code[3];
+    char _last_received_command[120];
+    bool _pmtk_command_result;
+
+    /* Position attributes */
+    char *longitude;
+    char *latitude;
+
+    typedef struct {
+        char packet_type[3];
+        bool is_command;
+        uint8_t nb_param;
+        uint8_t anwser_size = 19;
+        char **parameters;
+        bool ack;
+    } Pmtk_message;
+
+    /*!
+     * Callback triggered when a caracter is received by UART
+     *
+     */
+    void callback_rx(void);
+
+    /*!
+     *  Write a PMTK message which permit to configure the L86 module
+     *
+     *  \param message : PMTK message object which contains all necessary informations to send to the L86 module
+     *
+     */
+    void write_pmtk_message(Pmtk_message message);
+
+    /*!
+     *  Calculate the message checksum
+     *
+     *  \param message PMTK message from which we calculate the checksum
+     *
+     */
+    unsigned char calculate_checksum(char *message);
+
+    /*!
+     *  Start receiving message from L86 module
+     *
+     */
+    void start_receive();
+
+    /*!
+     *  Stop receiving message from L86 module
+     */
+    void stop_receive();
 };
 
 #endif /* CATIE_SIXTRON_L86_H_ */
