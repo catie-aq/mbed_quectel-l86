@@ -7,9 +7,6 @@
 #include <cstdarg>
 #include <bitset>
 
-#define SATELLITE_SYSTEMS_COUNT 5
-#define NMEA_COMMANDS_COUNT 6
-
 typedef struct {
     char packet_type[3];
     bool is_command;
@@ -18,9 +15,6 @@ typedef struct {
     char **parameters;
     bool ack;
 } Pmtk_message;
-
-typedef std::bitset<SATELLITE_SYSTEMS_COUNT> SatelliteSystems;
-typedef std::bitset<NMEA_COMMANDS_COUNT> NmeaCommands;
 
 class L86
 {
@@ -62,6 +56,7 @@ public:
         GALILEO_FULL,
         BEIDOU
     };
+	#define SATELLITE_SYSTEMS_COUNT 5
 
     /* Standby mode */
     enum class StandbyMode {
@@ -82,6 +77,7 @@ public:
         GSV,
         GLL
     };
+	#define NMEA_COMMANDS_COUNT 6
 
     /* Frequencies supported */
     enum class NmeaFrequency {
@@ -100,6 +96,9 @@ public:
         BALLOON_MODE
     };
 
+    typedef std::bitset<SATELLITE_SYSTEMS_COUNT> SatelliteSystems;
+
+    typedef std::bitset<NMEA_COMMANDS_COUNT> NmeaCommands;
 
     /*!
     *  Default L86 constructor
