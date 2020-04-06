@@ -4,8 +4,8 @@
 #include "mbed.h"
 #include <cstdio>
 #include <cstdlib>
-
-using namespace sixtron;
+#include <cstdarg>
+#include <bitset>
 
 typedef struct {
     char packet_type[3];
@@ -18,6 +18,7 @@ typedef struct {
 
 class L86
 {
+
 private:
     RawSerial *_uart;
     bool _waiting_ack;
@@ -48,13 +49,14 @@ public:
     };
 
     /* Satellite system */
-    enum class SatelliteSystem {
+    enum class SatelliteSystem : size_t {
         GPS,
         GLONASS,
         GALILEO,
         GALILEO_FULL,
         BEIDOU
     };
+	#define SATELLITE_SYSTEMS_COUNT 5
 
     /* Standby mode */
     enum class StandbyMode {
@@ -67,7 +69,7 @@ public:
     };
 
     /* NMEA commande types */
-    enum class NmeaCommandType {
+    enum class NmeaCommandType : size_t {
         RMC,
         VTG,
         GGA,
@@ -75,6 +77,7 @@ public:
         GSV,
         GLL
     };
+	#define NMEA_COMMANDS_COUNT 6
 
     /* Frequencies supported */
     enum class NmeaFrequency {
@@ -93,6 +96,9 @@ public:
         BALLOON_MODE
     };
 
+    typedef std::bitset<SATELLITE_SYSTEMS_COUNT> SatelliteSystems;
+
+    typedef std::bitset<NMEA_COMMANDS_COUNT> NmeaCommands;
 
     /*!
     *  Default L86 constructor
@@ -118,7 +124,7 @@ public:
      *
      *  \param satellite_system (GPS, GLONASS, GALILEO, BEIDOU)
      */
-    void set_satellite_system(SatelliteSystem satellite_system);
+    void set_satellite_system(SatelliteSystems satellite_system);
 
     /*!
      *  Select NMEA output frequencies
@@ -126,7 +132,7 @@ public:
      *  \param nmea_trame (RMC, VTG, GGA, GSA, GSV, GLL)
      *  \param frequency
      */
-    void set_nmea_output_frequency(NmeaCommandType nmea_trame, NmeaFrequency frequency);
+    void set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency);
 
     /*!
      *  Select navigation mode
