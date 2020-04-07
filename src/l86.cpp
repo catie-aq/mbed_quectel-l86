@@ -58,7 +58,7 @@ void L86::write_pmtk_message(Pmtk_message message)
             }
             if (ack_message[5] == '0' && ack_message[6] == '0' && ack_message[7] == '1') {  /* ack frame */
                 _waiting_ack = false;
-                if (ack_message[9] == message.packet_type[0] && ack_message[10] == message.packet_type[1] && ack_message[11] == message.packet_type[2]) { /* Good command ack ? */
+                if (ack_message[9] == message.packet_type[0] && ack_message[10] == message.packet_type[1] && ack_message[11] == message.packet_type[2]) { /* Good command ack */
                     if (ack_message[13] == '3') { /* Command succeeds */
                         _pmtk_command_result = true;
                     }
