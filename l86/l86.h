@@ -148,10 +148,6 @@ private:
     char _last_received_command[120];
     bool _pmtk_command_result;
 
-    /* Position attributes */
-    char *longitude;
-    char *latitude;
-
     typedef struct {
         char packet_type[3];
         bool is_command;
@@ -160,6 +156,40 @@ private:
         char **parameters;
         bool ack;
     } Pmtk_message;
+
+    typedef struct {
+   		char id[4];
+   		char elevation[2];
+   		char azimuth[3];
+   		char snr[5];
+   	}Satellite;
+
+   	typedef struct {
+   		char latitude[10];
+   		char longitude[11];
+   		char altitude[6];
+   	}Position;
+   	Position _position_informations;
+
+   	typedef struct {
+   		char speed_kmh[6];
+   		char speed_knots[6];
+   	}Movement;
+   	Movement _movement_informations;
+
+   	typedef struct {
+   		char time[10];
+   		char date[6];
+   		char positionning_mode[1];
+   		char fix_status[1];
+   	}Informations;
+   	Informations _global_informations;
+
+   	typedef struct {
+   		int satellites_count;
+   		Satellite *satellites;
+   	}Satellites_info;
+   	Satellites_info _satellites_informations;
 
     /*!
      * Callback triggered when a caracter is received by UART
@@ -193,6 +223,9 @@ private:
      *  Stop receiving message from L86 module
      */
     void stop_receive();
+
+    void set_parameter(char **parameters, NmeaCommandType command_type);
+
 };
 
 #endif /* CATIE_SIXTRON_L86_H_ */

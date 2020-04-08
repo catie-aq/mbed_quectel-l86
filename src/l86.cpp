@@ -3,13 +3,24 @@
 L86::L86(RawSerial *uart)
 {
     this->_waiting_ack = false;
-    this->longitude = (char *) malloc(sizeof(char) * 11);
-    this->latitude = (char *) malloc(sizeof(char) * 10);
     this->_current_pmtk_command_code[0] = 0;
     this->_current_pmtk_command_code[1] = 0;
     this->_current_pmtk_command_code[2] = 0;
     this->_pmtk_command_result = false;
     _uart = uart;
+
+    memset(_position_informations.altitude, 0, 6);
+    memset(_position_informations.latitude, 0, 10);
+    memset(_position_informations.longitude, 0, 11);
+
+    memset(_movement_informations.speed_kmh, 0, 6);
+    memset(_movement_informations.speed_knots, 0, 6);
+
+    memset(_global_informations.date, 0, 6);
+    memset(_global_informations.fix_status, 0, 1);
+    memset(_global_informations.positionning_mode, 0, 1);
+    memset(_global_informations.time, 0, 10);
+
 }
 
 void L86::start_receive()
@@ -70,16 +81,6 @@ void L86::write_pmtk_message(Pmtk_message message)
         }
         ThisThread::sleep_for(200);
     } while (_waiting_ack or !_pmtk_command_result);
-}
-
-char *L86::get_longitude()
-{
-    return (char *) this->longitude;
-}
-
-char *L86::get_latitude()
-{
-    return (char *) this->latitude;
 }
 
 void L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency)
@@ -409,22 +410,7 @@ void L86::callback_rx(void)
             }
 
             /* Update informations */
-            switch (response_type) {
-                case NmeaCommandType::RMC:
-                    sprintf(this->longitude, "%s%c", parameters[4], parameters[5][0]);
-                    sprintf(this->latitude, "%s%c", parameters[2], parameters[3][0]);
-                    break;
-
-                case NmeaCommandType::GGA:
-                    sprintf(this->longitude, "%s%c", parameters[3], parameters[4][0]);
-                    sprintf(this->latitude, "%s%c", parameters[1], parameters[2][0]);
-                    break;
-
-                case NmeaCommandType::GLL:
-                    sprintf(this->longitude, "%s%c", parameters[2], parameters[3][0]);
-                    sprintf(this->latitude, "%s%c", parameters[0], parameters[1][0]);
-                    break;
-            }
+            set_parameter((char **)parameters, response_type);
         } else if (answer[1] == 'P' && _waiting_ack == true) {     /* Trames PMTK */
             if (answer[9] == _current_pmtk_command_code[0] && answer[10] == _current_pmtk_command_code[1] && answer[11] == _current_pmtk_command_code[2]) {
                 char flag = answer[12];
@@ -461,5 +447,47 @@ unsigned char L86::calculate_checksum(char *message)
         i++;
     }
     return sum;
+}
+
+void L86::set_parameter(char **parameters, NmeaCommandType command_type){
+	switch (command_type){
+		case NmeaCommandType::RMC:
+			sprintf(_global_informations.time, "%s", parameters[0]);
+			sprintf(_global_informations.date, "%s", parameters[8]);
+			sprintf(_global_informations.positionning_mode, "%s", parameters[11]);
+			sprintf(_position_informations.latitude, "%s%c", parameters[2], parameters[3][0]);
+			sprintf(_position_informations.longitude, "%s%c", parameters[4], parameters[5][0]);
+			sprintf(_movement_informations.speed_knots, "%s", parameters[6]);
+			break;
+
+		case NmeaCommandType::VTG:
+			sprintf(_global_informations.positionning_mode, "%s", parameters[8]);
+			sprintf(_movement_informations.speed_knots, "%s", parameters[4]);
+			sprintf(_movement_informations.speed_kmh, "%s", parameters[6]);
+			break;
+
+		case NmeaCommandType::GGA:
+			sprintf(_global_informations.time, "%s", parameters[0]);
+			sprintf(_global_informations.fix_status, "%s", parameters[5]);
+			sprintf(_position_informations.latitude, "%s%c", parameters[1], parameters[2][0]);
+			sprintf(_position_informations.longitude, "%s%c", parameters[3], parameters[4][0]);
+			sprintf(_position_informations.altitude, "%s", parameters[8]);
+			// TODO Handle Number of Satellites
+			break;
+
+		case NmeaCommandType::GSA:
+			// TODO Handle all the GSA informations
+			break;
+
+		case NmeaCommandType::GSV:
+			// TODO Handle all the GSV informations
+			break;
+
+		case NmeaCommandType::GLL:
+			sprintf(_global_informations.time, "%s", parameters[4]);
+			sprintf(_global_informations.positionning_mode, "%s", parameters[4]);
+			sprintf(_position_informations.latitude, "%s%c", parameters[0], parameters[1][0]);
+			sprintf(_position_informations.longitude, "%s%c", parameters[2], parameters[3][0]);
+	}
 }
 
