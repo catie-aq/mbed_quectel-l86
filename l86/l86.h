@@ -4,39 +4,11 @@
 #include "mbed.h"
 #include <cstdio>
 #include <cstdlib>
-#include <cstdarg>
 #include <bitset>
 
-typedef struct {
-    char packet_type[3];
-    bool is_command;
-    uint8_t nb_param;
-    uint8_t anwser_size = 19;
-    char **parameters;
-    bool ack;
-} Pmtk_message;
 
 class L86
 {
-
-private:
-    RawSerial *_uart;
-    bool _waiting_ack;
-    char _current_pmtk_command_code[3];
-    char _last_received_command[120];
-    bool _pmtk_command_result;
-
-    /* Position attributes */
-    char *longitude;
-    char *latitude;
-
-protected:
-
-    /*!
-     * Callback triggered when a caracter is received by UART
-     *
-     */
-    void callback_rx(void);
 
 public:
 
@@ -149,14 +121,6 @@ public:
     void set_position_fix_interval(uint16_t interval);
 
     /*!
-     *  Write a PMTK message which permit to configure the L86 module
-     *
-     *  \param message : PMTK message object which contains all necessary informations to send to the L86 module
-     *
-     */
-    void write_pmtk_message(Pmtk_message message);
-
-    /*!
      *  Start the L86 module in the specified mode
      *
      *  \param start_mode (full cold, cold, warm, hot)
@@ -171,12 +135,45 @@ public:
     void standby_mode(StandbyMode standby_mode);
 
     /*!
-     *  Update latitude and longitude values
+     *  Get last received command from the L86 module
      *
-     *  \param response_type : NMEA command received type (RMC, VTG, GGA, GSA, GSV, GLL)
-     *  \param parameters : every parameters received in the NMEA message
      */
-    void update_informations(NmeaCommandType response_type, char **parameters);
+    char *get_last_received_command();
+
+private:
+
+    RawSerial *_uart;
+    bool _waiting_ack;
+    char _current_pmtk_command_code[3];
+    char _last_received_command[120];
+    bool _pmtk_command_result;
+
+    /* Position attributes */
+    char *longitude;
+    char *latitude;
+
+    typedef struct {
+        char packet_type[3];
+        bool is_command;
+        uint8_t nb_param;
+        uint8_t anwser_size = 19;
+        char **parameters;
+        bool ack;
+    } Pmtk_message;
+
+    /*!
+     * Callback triggered when a caracter is received by UART
+     *
+     */
+    void callback_rx(void);
+
+    /*!
+     *  Write a PMTK message which permit to configure the L86 module
+     *
+     *  \param message : PMTK message object which contains all necessary informations to send to the L86 module
+     *
+     */
+    void write_pmtk_message(Pmtk_message message);
 
     /*!
      *  Calculate the message checksum
@@ -186,12 +183,16 @@ public:
      */
     unsigned char calculate_checksum(char *message);
 
-    char *get_last_received_command();
+    /*!
+     *  Start receiving message from L86 module
+     *
+     */
+    void start_receive();
 
-
-    void start_attach();
-    void stop_attach();
-
+    /*!
+     *  Stop receiving message from L86 module
+     */
+    void stop_receive();
 };
 
 #endif /* CATIE_SIXTRON_L86_H_ */
