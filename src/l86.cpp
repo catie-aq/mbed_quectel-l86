@@ -243,7 +243,7 @@ void L86::set_satellite_system(SatelliteSystems satellite_systems)
     for (int i = 0 ; i < message.nb_param ; i++) {
         *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
     }
-    if(satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
         message.parameters[0] = (char *)"1";
     } else {
         message.parameters[0] = (char *)"0";
@@ -277,10 +277,10 @@ void L86::set_satellite_system(SatelliteSystems satellite_systems)
 
     this->write_pmtk_message(message);
 
-    for (int i = 0 ; i < message.nb_param ; i++) {
+    /*for (int i = 0 ; i < message.nb_param ; i++) {
         free(message.parameters[i]);
         message.parameters[i] = NULL;
-    }
+    }*/
 }
 
 void L86::start(StartMode start_mode)
@@ -410,7 +410,8 @@ void L86::callback_rx(void)
             }
 
             /* Update informations */
-            set_parameter((char **)parameters, response_type);
+
+            set_parameter(parameters, response_type);
         } else if (answer[1] == 'P' && _waiting_ack == true) {     /* Trames PMTK */
             if (answer[9] == _current_pmtk_command_code[0] && answer[10] == _current_pmtk_command_code[1] && answer[11] == _current_pmtk_command_code[2]) {
                 char flag = answer[12];
@@ -449,45 +450,67 @@ unsigned char L86::calculate_checksum(char *message)
     return sum;
 }
 
-void L86::set_parameter(char **parameters, NmeaCommandType command_type){
-	switch (command_type){
-		case NmeaCommandType::RMC:
-			sprintf(_global_informations.time, "%s", parameters[0]);
-			sprintf(_global_informations.date, "%s", parameters[8]);
-			sprintf(_global_informations.positionning_mode, "%s", parameters[11]);
-			sprintf(_position_informations.latitude, "%s%c", parameters[2], parameters[3][0]);
-			sprintf(_position_informations.longitude, "%s%c", parameters[4], parameters[5][0]);
-			sprintf(_movement_informations.speed_knots, "%s", parameters[6]);
-			break;
+void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
+{
+    switch (command_type) {
+        case NmeaCommandType::RMC:
+            sprintf(_global_informations.time, "%s\0", parameters[0]);
+            sprintf(_global_informations.date, "%s\0", parameters[8]);
+            sprintf(_global_informations.positionning_mode, "%s\0", parameters[11]);
+            sprintf(_position_informations.latitude, "%s%c\0", parameters[2], parameters[3][0]);
+            sprintf(_position_informations.longitude, "%s%c\0", parameters[4], parameters[5][0]);
+            sprintf(_movement_informations.speed_knots, "%s\0", parameters[6]);
+            break;
 
-		case NmeaCommandType::VTG:
-			sprintf(_global_informations.positionning_mode, "%s", parameters[8]);
-			sprintf(_movement_informations.speed_knots, "%s", parameters[4]);
-			sprintf(_movement_informations.speed_kmh, "%s", parameters[6]);
-			break;
+        case NmeaCommandType::VTG:
+            sprintf(_global_informations.positionning_mode, "%s\0", parameters[8]);
+            sprintf(_movement_informations.speed_knots, "%s\0", parameters[4]);
+            sprintf(_movement_informations.speed_kmh, "%s\0", parameters[6]);
+            break;
 
-		case NmeaCommandType::GGA:
-			sprintf(_global_informations.time, "%s", parameters[0]);
-			sprintf(_global_informations.fix_status, "%s", parameters[5]);
-			sprintf(_position_informations.latitude, "%s%c", parameters[1], parameters[2][0]);
-			sprintf(_position_informations.longitude, "%s%c", parameters[3], parameters[4][0]);
-			sprintf(_position_informations.altitude, "%s", parameters[8]);
-			// TODO Handle Number of Satellites
-			break;
+        case NmeaCommandType::GGA:
+            sprintf(_global_informations.time, "%s\0", parameters[0]);
+            sprintf(_global_informations.fix_status, "%s\0", parameters[5]);
+            sprintf(_position_informations.latitude, "%s%c\0", parameters[1], parameters[2][0]);
+            sprintf(_position_informations.longitude, "%s%c\0", parameters[3], parameters[4][0]);
+            sprintf(_position_informations.altitude, "%s\0", parameters[8]);
+            // TODO Handle Number of Satellites
+            break;
 
-		case NmeaCommandType::GSA:
-			// TODO Handle all the GSA informations
-			break;
+        case NmeaCommandType::GSA:
+            // TODO Handle all the GSA informations
+            break;
 
-		case NmeaCommandType::GSV:
-			// TODO Handle all the GSV informations
-			break;
+        case NmeaCommandType::GSV:
+            // TODO Handle all the GSV informations
+            break;
 
-		case NmeaCommandType::GLL:
-			sprintf(_global_informations.time, "%s", parameters[4]);
-			sprintf(_global_informations.positionning_mode, "%s", parameters[4]);
-			sprintf(_position_informations.latitude, "%s%c", parameters[0], parameters[1][0]);
-			sprintf(_position_informations.longitude, "%s%c", parameters[2], parameters[3][0]);
-	}
+        case NmeaCommandType::GLL:
+            sprintf(_global_informations.time, "%s\0", parameters[4]);
+            sprintf(_global_informations.positionning_mode, "%s\0", parameters[4]);
+            sprintf(_position_informations.latitude, "%s%c\0", parameters[0], parameters[1][0]);
+            sprintf(_position_informations.longitude, "%s%c\0", parameters[2], parameters[3][0]);
+    }
+}
+
+
+Position L86::get_position_informations()
+{
+    return _position_informations;
+}
+
+Movement L86::get_movement_informations()
+{
+    return _movement_informations;
+}
+
+Informations L86::get_global_informations()
+{
+    return _global_informations;
+}
+
+Satellites_info L86::get_satellites_informations()
+{
+    return _satellites_informations;
 }
 

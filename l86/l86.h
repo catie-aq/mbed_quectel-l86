@@ -6,6 +6,37 @@
 #include <cstdlib>
 #include <bitset>
 
+typedef struct {
+    char id[4];
+    char elevation[2];
+    char azimuth[3];
+    char snr[5];
+} Satellite;
+
+typedef struct {
+    char latitude[10];
+    char altitude[6];
+    char longitude[11];
+} Position;
+
+typedef struct {
+    char speed_kmh[6];
+    char speed_knots[6];
+} Movement;
+
+typedef struct {
+    char time[10];
+    char date[6];
+    char positionning_mode[1];
+    char fix_status[1];
+} Informations;
+
+typedef struct {
+    int satellites_count;
+    Satellite *satellites;
+} Satellites_info;
+
+
 
 class L86
 {
@@ -28,7 +59,7 @@ public:
         GALILEO_FULL,
         BEIDOU
     };
-	#define SATELLITE_SYSTEMS_COUNT 5
+#define SATELLITE_SYSTEMS_COUNT 5
 
     /* Standby mode */
     enum class StandbyMode {
@@ -49,7 +80,7 @@ public:
         GSV,
         GLL
     };
-	#define NMEA_COMMANDS_COUNT 6
+#define NMEA_COMMANDS_COUNT 6
 
     /* Frequencies supported */
     enum class NmeaFrequency {
@@ -140,6 +171,26 @@ public:
      */
     char *get_last_received_command();
 
+    /*!
+     *  Get position informations
+     */
+    Position get_position_informations();
+
+    /*!
+     *  Get movement informations
+     */
+    Movement get_movement_informations();
+
+    /*!
+     *  Get global informations
+     */
+    Informations get_global_informations();
+
+    /*!
+     *  Get satellites informations
+     */
+    Satellites_info get_satellites_informations();
+
 private:
 
     RawSerial *_uart;
@@ -147,6 +198,10 @@ private:
     char _current_pmtk_command_code[3];
     char _last_received_command[120];
     bool _pmtk_command_result;
+    Position _position_informations;
+    Movement _movement_informations;
+    Informations _global_informations;
+    Satellites_info _satellites_informations;
 
     typedef struct {
         char packet_type[3];
@@ -157,39 +212,6 @@ private:
         bool ack;
     } Pmtk_message;
 
-    typedef struct {
-   		char id[4];
-   		char elevation[2];
-   		char azimuth[3];
-   		char snr[5];
-   	}Satellite;
-
-   	typedef struct {
-   		char latitude[10];
-   		char longitude[11];
-   		char altitude[6];
-   	}Position;
-   	Position _position_informations;
-
-   	typedef struct {
-   		char speed_kmh[6];
-   		char speed_knots[6];
-   	}Movement;
-   	Movement _movement_informations;
-
-   	typedef struct {
-   		char time[10];
-   		char date[6];
-   		char positionning_mode[1];
-   		char fix_status[1];
-   	}Informations;
-   	Informations _global_informations;
-
-   	typedef struct {
-   		int satellites_count;
-   		Satellite *satellites;
-   	}Satellites_info;
-   	Satellites_info _satellites_informations;
 
     /*!
      * Callback triggered when a caracter is received by UART
@@ -224,7 +246,7 @@ private:
      */
     void stop_receive();
 
-    void set_parameter(char **parameters, NmeaCommandType command_type);
+    void set_parameter(char parameters[][10], NmeaCommandType command_type);
 
 };
 
