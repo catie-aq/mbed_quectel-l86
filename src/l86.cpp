@@ -477,11 +477,14 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             sprintf(_position_informations.latitude, "%s%c", parameters[1], parameters[2][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[3], parameters[4][0]);
             sprintf(_position_informations.altitude, "%s", parameters[8]);
-            // TODO Handle Number of Satellites
+            _satellites_informations.satellites_count = atoi(parameters[6]);
             break;
 
         case NmeaCommandType::GSA:
-            // TODO Handle all the GSA informations
+            sprintf(_satellites_informations.mode, "%s", parameters[0]);
+            sprintf(_satellites_informations.hdop, "%s", parameters[15]);
+            sprintf(_satellites_informations.pdop, "%s", parameters[14]);
+            sprintf(_satellites_informations.vdop, "%s", parameters[16]);
             break;
 
         case NmeaCommandType::GSV:

@@ -27,13 +27,17 @@ typedef struct {
 typedef struct {
     char time[10];
     char date[6];
-    char positionning_mode[1];
-    char fix_status[1];
+    char positionning_mode[0];
+    char fix_status[0];
 } Informations;
 
 typedef struct {
     int satellites_count;
+    char mode[0];
     Satellite satellites[10];
+    char pdop[5];
+    char hdop[5];
+    char vdop[5];
 } Satellites_info;
 
 
