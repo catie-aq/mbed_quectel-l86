@@ -10,12 +10,12 @@ L86::L86(RawSerial *uart)
     _nb_satellites = 0;
     _uart = uart;
 
-    memset(_position_informations.altitude, 0, 6);
+    _position_informations.altitude = 0.0;
     memset(_position_informations.latitude, 0, 10);
     memset(_position_informations.longitude, 0, 11);
 
-    memset(_movement_informations.speed_kmh, 0, 6);
-    memset(_movement_informations.speed_knots, 0, 6);
+    _movement_informations.speed_kmh = 0.0;
+    _movement_informations.speed_knots = 0.0;
 
     memset(_global_informations.date, 0, 6);
     memset(_global_informations.fix_status, 0, 1);
@@ -457,34 +457,34 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
     int limit = 4;
     switch (command_type) {
         case NmeaCommandType::RMC:
-            sprintf(_global_informations.time, "%s", parameters[0]);
-            sprintf(_global_informations.date, "%s", parameters[8]);
+            sprintf(_global_informations.date, "%c%c/%c%c/20%c%c", parameters[8][0], parameters[8][1], parameters[8][2], parameters[8][3], parameters[8][4], parameters[8][5]);
+            sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[0][0], parameters[0][1], parameters[0][2], parameters[0][3], parameters[0][4], parameters[0][5]);
             sprintf(_global_informations.positionning_mode, "%s", parameters[11]);
             sprintf(_position_informations.latitude, "%s%c", parameters[2], parameters[3][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[4], parameters[5][0]);
-            sprintf(_movement_informations.speed_knots, "%s", parameters[6]);
+            _movement_informations.speed_knots = atof(parameters[6]);
             break;
 
         case NmeaCommandType::VTG:
             sprintf(_global_informations.positionning_mode, "%s", parameters[8]);
-            sprintf(_movement_informations.speed_knots, "%s", parameters[4]);
-            sprintf(_movement_informations.speed_kmh, "%s", parameters[6]);
+            _movement_informations.speed_knots = atof(parameters[4]);
+            _movement_informations.speed_kmh = atof(parameters[6]);
             break;
 
         case NmeaCommandType::GGA:
-            sprintf(_global_informations.time, "%s", parameters[0]);
+            sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[0][0], parameters[0][1], parameters[0][2], parameters[0][3], parameters[0][4], parameters[0][5]);
             sprintf(_global_informations.fix_status, "%s", parameters[5]);
             sprintf(_position_informations.latitude, "%s%c", parameters[1], parameters[2][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[3], parameters[4][0]);
-            sprintf(_position_informations.altitude, "%s", parameters[8]);
+            _position_informations.altitude = atof(parameters[8]);
             _satellites_informations.satellites_count = atoi(parameters[6]);
             break;
 
         case NmeaCommandType::GSA:
             sprintf(_satellites_informations.mode, "%s", parameters[0]);
-            sprintf(_satellites_informations.hdop, "%s", parameters[15]);
-            sprintf(_satellites_informations.pdop, "%s", parameters[14]);
-            sprintf(_satellites_informations.vdop, "%s", parameters[16]);
+            _satellites_informations.hdop = atof(parameters[15]);
+            _satellites_informations.pdop = atof(parameters[14]);
+            _satellites_informations.vdop = atof(parameters[16]);
             break;
 
         case NmeaCommandType::GSV:
@@ -495,20 +495,21 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
 
             for (int i = 1 ; i <= limit ; i++) {
                 for (int j = 0 ; j < _nb_satellites ; j++) {
-                    if (strcmp(_satellites_informations.satellites[j].id, parameters[i * 4 - 1]) == 0) {
-                        sprintf(_satellites_informations.satellites[j].elevation, "%s", parameters[i * 4]);
-                        sprintf(_satellites_informations.satellites[j].azimuth, "%s", parameters[i * 4 + 1]);
-                        sprintf(_satellites_informations.satellites[j].snr, "%s", parameters[i * 4 + 2]);
+                    int sat_id = atoi(parameters[i * 4 - 1]);
+                    if (_satellites_informations.satellites[j].id == sat_id) {
+                        _satellites_informations.satellites[j].elevation = atoi(parameters[i * 4]);
+                        _satellites_informations.satellites[j].azimuth = atoi(parameters[i * 4 + 1]);
+                        _satellites_informations.satellites[j].snr = atoi(parameters[i * 4 + 2]);
                         flag = true;
                         break;
                     }
                 }
                 if (!flag) { /* Add to the table if not already stored */
                     Satellite sat;
-                    sprintf(sat.id, "%s", parameters[i * 4 - 1]);
-                    sprintf(sat.elevation, "%s", parameters[i * 4]);
-                    sprintf(sat.azimuth, "%s", parameters[i * 4 + 1]);
-                    sprintf(sat.snr, "%s", parameters[i * 4 + 2]);
+                    sat.id = atoi(parameters[i * 4 - 1]);
+                    sat.elevation = atoi(parameters[i * 4]);
+                    sat.azimuth = atoi(parameters[i * 4 + 1]);
+                    sat.snr = atoi(parameters[i * 4 + 2]);
                     _satellites_informations.satellites[_nb_satellites] = sat;
                     _nb_satellites++;
                     flag = false;
@@ -518,7 +519,7 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             break;
 
         case NmeaCommandType::GLL:
-            sprintf(_global_informations.time, "%s", parameters[4]);
+            sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[4][0], parameters[4][1], parameters[4][2], parameters[4][3], parameters[4][4], parameters[4][5]);
             sprintf(_global_informations.positionning_mode, "%s", parameters[4]);
             sprintf(_position_informations.latitude, "%s%c", parameters[0], parameters[1][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[2], parameters[3][0]);

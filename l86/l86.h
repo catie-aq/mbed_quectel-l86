@@ -12,37 +12,37 @@ class L86
 public:
 
     typedef struct {
-        char id[4];
-        char elevation[2];
-        char azimuth[3];
-        char snr[5];
+        uint16_t id;
+        uint16_t elevation;
+        uint16_t azimuth;
+        uint16_t snr;
     } Satellite;
 
     typedef struct {
         char latitude[10];
-        char altitude[6];
+        double altitude;
         char longitude[11];
     } Position;
 
     typedef struct {
-        char speed_kmh[6];
-        char speed_knots[6];
+        float speed_kmh;
+        float speed_knots;
     } Movement;
 
     typedef struct {
         char time[10];
         char date[6];
-        char positionning_mode[0];
-        char fix_status[0];
+        char positionning_mode[1];
+        char fix_status[1];
     } Informations;
 
     typedef struct {
         int satellites_count;
-        char mode[0];
+        char mode[1];
         Satellite satellites[10];
-        char pdop[5];
-        char hdop[5];
-        char vdop[5];
+        float pdop;
+        float hdop;
+        float vdop;
     } Satellites_info;
 
     /* Start mode*/
