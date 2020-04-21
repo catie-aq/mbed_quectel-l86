@@ -31,14 +31,14 @@ public:
 
     typedef struct {
         char time[10];
-        char date[6];
-        char positionning_mode[1];
-        char fix_status[1];
+        char date[10];
+        char positionning_mode;
+        char fix_status;
     } Informations;
 
     typedef struct {
         int satellites_count;
-        char mode[1];
+        char mode;
         Satellite satellites[10];
         float pdop;
         float hdop;
@@ -99,6 +99,11 @@ public:
         RUNNING_MODE,
         AVIATION_MODE,
         BALLOON_MODE
+    };
+
+    enum class SpeedUnit {
+        KMH,
+        KNOTS
     };
 
     typedef std::bitset<SATELLITE_SYSTEMS_COUNT> SatelliteSystems;
@@ -173,25 +178,34 @@ public:
      */
     char *get_last_received_command();
 
-    /*!
-     *  Get position informations
-     */
-    Position get_position_informations();
+    Satellite *satellites();
 
-    /*!
-     *  Get movement informations
-     */
-    Movement get_movement_informations();
+    char *latitude();
 
-    /*!
-     *  Get global informations
-     */
-    Informations get_global_informations();
+    char *longitude();
 
-    /*!
-     *  Get satellites informations
-     */
-    Satellites_info get_satellites_informations();
+    double altitude();
+
+    float speed(SpeedUnit unit); /* TODO Add enum to know the unit */
+
+    char *time();
+
+    char *date();
+
+    char positionning_mode();
+
+    char fix_status();
+
+    int satellites_count();
+
+    char mode();
+
+    float pdop();
+
+    float hdop();
+
+    float vdop();
+
 
 private:
 
@@ -250,6 +264,7 @@ private:
     void stop_receive();
 
     void set_parameter(char parameters[][10], NmeaCommandType command_type);
+
 
 };
 

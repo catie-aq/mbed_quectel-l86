@@ -18,8 +18,6 @@ L86::L86(RawSerial *uart)
     _movement_informations.speed_knots = 0.0;
 
     memset(_global_informations.date, 0, 6);
-    memset(_global_informations.fix_status, 0, 1);
-    memset(_global_informations.positionning_mode, 0, 1);
     memset(_global_informations.time, 0, 10);
 
 }
@@ -368,6 +366,75 @@ void L86::standby_mode(StandbyMode standby_mode)
     }
 }
 
+char *L86::latitude()
+{
+    return (char *)_position_informations.latitude;
+}
+
+char *L86::longitude()
+{
+    return (char *)_position_informations.longitude;
+}
+
+double L86::altitude()
+{
+    return _position_informations.altitude;
+}
+
+float L86::speed(L86::SpeedUnit unit)
+{
+    if (unit == SpeedUnit::KMH) {
+        return _movement_informations.speed_kmh;
+    } else {
+        return _movement_informations.speed_knots;
+    }
+}
+
+char *L86::time()
+{
+    return (char *)_global_informations.time;
+}
+
+char *L86::date()
+{
+    return (char *)_global_informations.date;
+}
+
+char L86::positionning_mode()
+{
+    return _global_informations.positionning_mode;
+}
+
+char L86::fix_status()
+{
+    return _global_informations.fix_status;
+}
+
+int L86::satellites_count()
+{
+    return _satellites_informations.satellites_count;
+}
+
+char L86::mode()
+{
+    return _satellites_informations.mode;
+}
+
+float L86::pdop()
+{
+    return _satellites_informations.pdop;
+}
+
+float L86::hdop()
+{
+    return _satellites_informations.hdop;
+}
+
+float L86::vdop()
+{
+    return _satellites_informations.vdop;
+}
+
 void L86::callback_rx(void)
 {
     static unsigned char index_car = 0;
@@ -459,21 +526,21 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
         case NmeaCommandType::RMC:
             sprintf(_global_informations.date, "%c%c/%c%c/20%c%c", parameters[8][0], parameters[8][1], parameters[8][2], parameters[8][3], parameters[8][4], parameters[8][5]);
             sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[0][0], parameters[0][1], parameters[0][2], parameters[0][3], parameters[0][4], parameters[0][5]);
-            sprintf(_global_informations.positionning_mode, "%s", parameters[11]);
+            _global_informations.positionning_mode = parameters[11][0];
             sprintf(_position_informations.latitude, "%s%c", parameters[2], parameters[3][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[4], parameters[5][0]);
             _movement_informations.speed_knots = atof(parameters[6]);
             break;
 
         case NmeaCommandType::VTG:
-            sprintf(_global_informations.positionning_mode, "%s", parameters[8]);
+            _global_informations.positionning_mode = parameters[8][0];
             _movement_informations.speed_knots = atof(parameters[4]);
             _movement_informations.speed_kmh = atof(parameters[6]);
             break;
 
         case NmeaCommandType::GGA:
             sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[0][0], parameters[0][1], parameters[0][2], parameters[0][3], parameters[0][4], parameters[0][5]);
-            sprintf(_global_informations.fix_status, "%s", parameters[5]);
+            _global_informations.fix_status = parameters[5][0];
             sprintf(_position_informations.latitude, "%s%c", parameters[1], parameters[2][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[3], parameters[4][0]);
             _position_informations.altitude = atof(parameters[8]);
@@ -481,7 +548,7 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             break;
 
         case NmeaCommandType::GSA:
-            sprintf(_satellites_informations.mode, "%s", parameters[0]);
+            _satellites_informations.mode = parameters[0][0];
             _satellites_informations.hdop = atof(parameters[15]);
             _satellites_informations.pdop = atof(parameters[14]);
             _satellites_informations.vdop = atof(parameters[16]);
@@ -520,30 +587,11 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
 
         case NmeaCommandType::GLL:
             sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[4][0], parameters[4][1], parameters[4][2], parameters[4][3], parameters[4][4], parameters[4][5]);
-            sprintf(_global_informations.positionning_mode, "%s", parameters[4]);
+            _global_informations.positionning_mode = parameters[4][0];
             sprintf(_position_informations.latitude, "%s%c", parameters[0], parameters[1][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[2], parameters[3][0]);
     }
 }
 
 
-L86::Position L86::get_position_informations()
-{
-    return _position_informations;
-}
-
-L86::Movement L86::get_movement_informations()
-{
-    return _movement_informations;
-}
-
-L86::Informations L86::get_global_informations()
-{
-    return _global_informations;
-}
-
-L86::Satellites_info L86::get_satellites_informations()
-{
-    return _satellites_informations;
-}
 
