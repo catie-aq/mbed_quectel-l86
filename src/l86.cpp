@@ -526,22 +526,22 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
 }
 
 
-Position L86::get_position_informations()
+L86::Position L86::get_position_informations()
 {
     return _position_informations;
 }
 
-Movement L86::get_movement_informations()
+L86::Movement L86::get_movement_informations()
 {
     return _movement_informations;
 }
 
-Informations L86::get_global_informations()
+L86::Informations L86::get_global_informations()
 {
     return _global_informations;
 }
 
-Satellites_info L86::get_satellites_informations()
+L86::Satellites_info L86::get_satellites_informations()
 {
     return _satellites_informations;
 }

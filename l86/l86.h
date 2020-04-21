@@ -6,46 +6,44 @@
 #include <cstdlib>
 #include <bitset>
 
-typedef struct {
-    char id[4];
-    char elevation[2];
-    char azimuth[3];
-    char snr[5];
-} Satellite;
-
-typedef struct {
-    char latitude[10];
-    char altitude[6];
-    char longitude[11];
-} Position;
-
-typedef struct {
-    char speed_kmh[6];
-    char speed_knots[6];
-} Movement;
-
-typedef struct {
-    char time[10];
-    char date[6];
-    char positionning_mode[0];
-    char fix_status[0];
-} Informations;
-
-typedef struct {
-    int satellites_count;
-    char mode[0];
-    Satellite satellites[10];
-    char pdop[5];
-    char hdop[5];
-    char vdop[5];
-} Satellites_info;
-
-
-
 class L86
 {
 
 public:
+
+    typedef struct {
+        char id[4];
+        char elevation[2];
+        char azimuth[3];
+        char snr[5];
+    } Satellite;
+
+    typedef struct {
+        char latitude[10];
+        char altitude[6];
+        char longitude[11];
+    } Position;
+
+    typedef struct {
+        char speed_kmh[6];
+        char speed_knots[6];
+    } Movement;
+
+    typedef struct {
+        char time[10];
+        char date[6];
+        char positionning_mode[0];
+        char fix_status[0];
+    } Informations;
+
+    typedef struct {
+        int satellites_count;
+        char mode[0];
+        Satellite satellites[10];
+        char pdop[5];
+        char hdop[5];
+        char vdop[5];
+    } Satellites_info;
 
     /* Start mode*/
     enum class StartMode {
