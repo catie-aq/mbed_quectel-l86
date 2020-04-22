@@ -75,7 +75,7 @@ public:
     } Informations;
 
     typedef struct {
-        int satellites_count;
+        int satellite_count;
         Mode mode;
         FixStatusGSA status;
         Satellite satellites[10];
@@ -237,7 +237,7 @@ public:
 
     FixStatusGGA fix_status();
 
-    int satellites_count();
+    int satellite_count();
 
     Mode mode();
 

@@ -419,9 +419,9 @@ L86::FixStatusGGA L86::fix_status()
     return _global_informations.fix_status;
 }
 
-int L86::satellites_count()
+int L86::satellite_count()
 {
-    return _satellites_informations.satellites_count;
+    return _satellites_informations.satellite_count;
 }
 
 L86::Mode L86::mode()
@@ -553,7 +553,7 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             sprintf(_position_informations.latitude, "%s%c", parameters[1], parameters[2][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[3], parameters[4][0]);
             _position_informations.altitude = atof(parameters[8]);
-            _satellites_informations.satellites_count = atoi(parameters[6]);
+            _satellites_informations.satellite_count = atoi(parameters[6]);
             break;
 
         case NmeaCommandType::GSA:
@@ -591,7 +591,7 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
                     flag = false;
                 }
             }
-            _satellites_informations.satellites_count = atoi(parameters[2]);
+            _satellites_informations.satellite_count = atoi(parameters[2]);
             break;
 
         case NmeaCommandType::GLL:
