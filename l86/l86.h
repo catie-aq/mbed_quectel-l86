@@ -21,6 +21,34 @@ class L86
 
 public:
 
+    enum class PositionningMode {
+        NO_FIX,
+        AUTONOMOUS_GNSS_FIX,
+        DIFFERENTIAL_GNSS_FIX,
+        UNKNOWN
+    };
+
+    enum class FixStatusGGA {
+        INVALID,
+        GNSS_FIX,
+        DGPS_FIX,
+        ESTIMATED_MODE,
+        UNKNOWN
+    };
+
+    enum class FixStatusGSA {
+        NOFIX,
+        FIX2D,
+        FIX3D,
+        UNKNOWN
+    };
+
+    enum class Mode {
+        MANUAL_SWITCH,
+        AUTOMATIC_SWITCH,
+        UNKNOWN
+    };
+
     typedef struct {
         uint16_t id;
         uint16_t elevation;
@@ -42,13 +70,14 @@ public:
     typedef struct {
         char time[10];
         char date[10];
-        char positionning_mode;
-        char fix_status;
+        PositionningMode positionning_mode;
+        FixStatusGGA fix_status;
     } Informations;
 
     typedef struct {
         int satellites_count;
-        char mode;
+        Mode mode;
+        FixStatusGSA status;
         Satellite satellites[10];
         double pdop;
         double hdop;
@@ -204,20 +233,19 @@ public:
 
     char *date();
 
-    char positionning_mode();
+    PositionningMode positionning_mode();
 
-    char fix_status();
+    FixStatusGGA fix_status();
 
     int satellites_count();
 
-    char mode();
+    Mode mode();
 
     double pdop();
 
     double hdop();
 
     double vdop();
-
 
 private:
 
