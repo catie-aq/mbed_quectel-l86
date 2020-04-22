@@ -254,7 +254,7 @@ private:
     char _current_pmtk_command_code[3];
     char _last_received_command[120];
     bool _pmtk_command_result;
-    int _nb_satellites;
+    int _registered_satellite_count;
     Position _position_informations;
     Movement _movement_informations;
     Informations _global_informations;

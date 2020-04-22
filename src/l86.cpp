@@ -7,7 +7,7 @@ L86::L86(RawSerial *uart)
     this->_current_pmtk_command_code[1] = 0;
     this->_current_pmtk_command_code[2] = 0;
     this->_pmtk_command_result = false;
-    _nb_satellites = 0;
+    _registered_satellite_count = 0;
     _uart = uart;
 
     _position_informations.altitude = 0.0;
@@ -570,7 +570,7 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             }
 
             for (int i = 1 ; i <= limit ; i++) {
-                for (int j = 0 ; j < _nb_satellites ; j++) {
+                for (int j = 0 ; j < _registered_satellite_count ; j++) {
                     int sat_id = atoi(parameters[i * 4 - 1]);
                     if (_satellites_informations.satellites[j].id == sat_id) {
                         _satellites_informations.satellites[j].elevation = atoi(parameters[i * 4]);
@@ -586,8 +586,8 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
                     sat.elevation = atoi(parameters[i * 4]);
                     sat.azimuth = atoi(parameters[i * 4 + 1]);
                     sat.snr = atoi(parameters[i * 4 + 2]);
-                    _satellites_informations.satellites[_nb_satellites] = sat;
-                    _nb_satellites++;
+                    _satellites_informations.satellites[_registered_satellite_count] = sat;
+                    _registered_satellite_count++;
                     flag = false;
                 }
             }
