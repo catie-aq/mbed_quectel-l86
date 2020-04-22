@@ -79,10 +79,14 @@ public:
         Mode mode;
         FixStatusGSA status;
         Satellite satellites[10];
-        double pdop;
-        double hdop;
-        double vdop;
+
     } Satellites_info;
+
+    typedef struct {
+        double positional;
+        double horizontal;
+        double vertical;
+    } DilutionOfPrecision;
 
     /* Start mode*/
     enum class StartMode {
@@ -239,11 +243,7 @@ public:
 
     Mode mode();
 
-    double pdop();
-
-    double hdop();
-
-    double vdop();
+    DilutionOfPrecision dilution_of_precision();
 
 private:
 
@@ -257,6 +257,7 @@ private:
     Movement _movement_informations;
     Informations _global_informations;
     Satellites_info _satellites_informations;
+    DilutionOfPrecision _dilution_of_precision;
 
     typedef struct {
         char packet_type[3];

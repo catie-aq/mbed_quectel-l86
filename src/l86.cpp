@@ -421,19 +421,9 @@ L86::Mode L86::mode()
     return _satellites_informations.mode;
 }
 
-double L86::pdop()
+L86::DilutionOfPrecision L86::dilution_of_precision()
 {
-    return _satellites_informations.pdop;
-}
-
-double L86::hdop()
-{
-    return _satellites_informations.hdop;
-}
-
-double L86::vdop()
-{
-    return _satellites_informations.vdop;
+    return _dilution_of_precision;
 }
 
 void L86::callback_rx(void)
@@ -551,9 +541,9 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
         case NmeaCommandType::GSA:
             set_mode(parameters[0][0]);
             set_fix_satellite_status(parameters[1][0]);
-            _satellites_informations.hdop = atof(parameters[15]);
-            _satellites_informations.pdop = atof(parameters[14]);
-            _satellites_informations.vdop = atof(parameters[16]);
+            _dilution_of_precision.horizontal = atof(parameters[15]);
+            _dilution_of_precision.positional = atof(parameters[14]);
+            _dilution_of_precision.vertical = atof(parameters[16]);
             break;
 
         case NmeaCommandType::GSV:
