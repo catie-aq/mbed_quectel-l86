@@ -535,60 +535,21 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
         case NmeaCommandType::RMC:
             sprintf(_global_informations.date, "%c%c/%c%c/20%c%c", parameters[8][0], parameters[8][1], parameters[8][2], parameters[8][3], parameters[8][4], parameters[8][5]);
             sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[0][0], parameters[0][1], parameters[0][2], parameters[0][3], parameters[0][4], parameters[0][5]);
-            switch (parameters[11][0]) {
-                case 'N':
-                    _global_informations.positionning_mode = PositionningMode::NO_FIX;
-                    break;
-                case 'A':
-                    _global_informations.positionning_mode = PositionningMode::AUTONOMOUS_GNSS_FIX;
-                    break;
-                case 'D':
-                    _global_informations.positionning_mode = PositionningMode::DIFFERENTIAL_GNSS_FIX;
-                    break;
-                default:
-                    _global_informations.positionning_mode = PositionningMode::UNKNOWN;
-            }
+            set_positionning_mode(parameters[11][0]);
             sprintf(_position_informations.latitude, "%s%c", parameters[2], parameters[3][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[4], parameters[5][0]);
             _movement_informations.speed_knots = atof(parameters[6]);
             break;
 
         case NmeaCommandType::VTG:
-            switch (parameters[8][0]) {
-                case 'N':
-                    _global_informations.positionning_mode = PositionningMode::NO_FIX;
-                    break;
-                case 'A':
-                    _global_informations.positionning_mode = PositionningMode::AUTONOMOUS_GNSS_FIX;
-                    break;
-                case 'D':
-                    _global_informations.positionning_mode = PositionningMode::DIFFERENTIAL_GNSS_FIX;
-                    break;
-                default:
-                    _global_informations.positionning_mode = PositionningMode::UNKNOWN;
-            }
+            set_positionning_mode(parameters[8][0]);
             _movement_informations.speed_knots = atof(parameters[4]);
             _movement_informations.speed_kmh = atof(parameters[6]);
             break;
 
         case NmeaCommandType::GGA:
             sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[0][0], parameters[0][1], parameters[0][2], parameters[0][3], parameters[0][4], parameters[0][5]);
-            switch (parameters[5][0]) {
-                case '0':
-                    _global_informations.fix_status = FixStatusGGA::INVALID;
-                    break;
-                case '1':
-                    _global_informations.fix_status = FixStatusGGA::GNSS_FIX;
-                    break;
-                case '2':
-                    _global_informations.fix_status = FixStatusGGA::DGPS_FIX;
-                    break;
-                case '6':
-                    _global_informations.fix_status = FixStatusGGA::ESTIMATED_MODE;
-                    break;
-                default:
-                    _global_informations.fix_status = FixStatusGGA::UNKNOWN;
-            }
+            set_fix_status(parameters[5][0]);
             sprintf(_position_informations.latitude, "%s%c", parameters[1], parameters[2][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[3], parameters[4][0]);
             _position_informations.altitude = atof(parameters[8]);
@@ -596,37 +557,14 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             break;
 
         case NmeaCommandType::GSA:
-            switch (parameters[0][0]) {
-                case 'M':
-                    _satellites_informations.mode = Mode::MANUAL_SWITCH;
-                    break;
-                case 'A':
-                    _satellites_informations.mode = Mode::AUTOMATIC_SWITCH;
-                    break;
-                default:
-                    _satellites_informations.mode = Mode::UNKNOWN;
-            }
-            switch (parameters[1][0]) {
-                case '1':
-                    _satellites_informations.status = FixStatusGSA::NOFIX;
-                    break;
-                case '2':
-                    _satellites_informations.status = FixStatusGSA::FIX2D;
-                    break;
-                case '3':
-                    _satellites_informations.status = FixStatusGSA::FIX3D;
-                    break;
-                default:
-                    _satellites_informations.status = FixStatusGSA::UNKNOWN;
-            }
-
+            set_mode(parameters[0][0]);
+            set_fix_satellite_status(parameters[1][0]);
             _satellites_informations.hdop = atof(parameters[15]);
             _satellites_informations.pdop = atof(parameters[14]);
             _satellites_informations.vdop = atof(parameters[16]);
             break;
 
         case NmeaCommandType::GSV:
-            // TODO Handle all the GSV informations
             if (strcmp(parameters[0], parameters[1]) == 0) {
                 limit = 12 - atoi(parameters[2]);
             }
@@ -658,23 +596,78 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
 
         case NmeaCommandType::GLL:
             sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[4][0], parameters[4][1], parameters[4][2], parameters[4][3], parameters[4][4], parameters[4][5]);
-            switch (parameters[4][0]) {
-                case 'N':
-                    _global_informations.positionning_mode = PositionningMode::NO_FIX;
-                    break;
-                case 'A':
-                    _global_informations.positionning_mode = PositionningMode::AUTONOMOUS_GNSS_FIX;
-                    break;
-                case 'D':
-                    _global_informations.positionning_mode = PositionningMode::DIFFERENTIAL_GNSS_FIX;
-                    break;
-                default:
-                    _global_informations.positionning_mode = PositionningMode::UNKNOWN;
-            }
+            set_positionning_mode(parameters[4][0]);
             sprintf(_position_informations.latitude, "%s%c", parameters[0], parameters[1][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[2], parameters[3][0]);
     }
 }
 
+void L86::set_positionning_mode(char c_positionning_mode)
+{
+    switch (c_positionning_mode) {
+        case 'N':
+            _global_informations.positionning_mode = PositionningMode::NO_FIX;
+            break;
+        case 'A':
+            _global_informations.positionning_mode = PositionningMode::AUTONOMOUS_GNSS_FIX;
+            break;
+        case 'D':
+            _global_informations.positionning_mode = PositionningMode::DIFFERENTIAL_GNSS_FIX;
+            break;
+        default:
+            _global_informations.positionning_mode = PositionningMode::UNKNOWN;
+    }
+}
+
+void L86::set_fix_status(char c_fix_status)
+{
+    switch (c_fix_status) {
+        case '0':
+            _global_informations.fix_status = FixStatusGGA::INVALID;
+            break;
+        case '1':
+            _global_informations.fix_status = FixStatusGGA::GNSS_FIX;
+            break;
+        case '2':
+            _global_informations.fix_status = FixStatusGGA::DGPS_FIX;
+            break;
+        case '6':
+            _global_informations.fix_status = FixStatusGGA::ESTIMATED_MODE;
+            break;
+        default:
+            _global_informations.fix_status = FixStatusGGA::UNKNOWN;
+    }
+}
+
+void L86::set_fix_satellite_status(char c_fix_satellite_status)
+{
+    switch (c_fix_satellite_status) {
+        case '1':
+            _satellites_informations.status = FixStatusGSA::NOFIX;
+            break;
+        case '2':
+            _satellites_informations.status = FixStatusGSA::FIX2D;
+            break;
+        case '3':
+            _satellites_informations.status = FixStatusGSA::FIX3D;
+            break;
+        default:
+            _satellites_informations.status = FixStatusGSA::UNKNOWN;
+    }
+}
+
+void L86::set_mode(char c_mode)
+{
+    switch (c_mode) {
+        case 'M':
+            _satellites_informations.mode = Mode::MANUAL_SWITCH;
+            break;
+        case 'A':
+            _satellites_informations.mode = Mode::AUTOMATIC_SWITCH;
+            break;
+        default:
+            _satellites_informations.mode = Mode::UNKNOWN;
+    }
+}
 
 

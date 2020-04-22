@@ -305,6 +305,13 @@ private:
 
     void set_parameter(char parameters[][10], NmeaCommandType command_type);
 
+    void set_positionning_mode(char c_positionning_mode);
+
+    void set_fix_status(char c_fix_status);
+
+    void set_fix_satellite_status(char c_fix_satellite_status);
+
+    void set_mode(char c_mode);
 
 };
 
