@@ -4,6 +4,7 @@
 #include "mbed.h"
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include <bitset>
 
 #define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KMH
@@ -68,8 +69,7 @@ public:
     } Movement;
 
     typedef struct {
-        char time[10];
-        char date[10];
+        tm time;
         PositionningMode positionning_mode;
         FixStatusGGA fix_status;
     } Informations;
@@ -229,9 +229,7 @@ public:
 
     double speed();
 
-    char *time();
-
-    char *date();
+    time_t time();
 
     PositionningMode positionning_mode();
 
@@ -312,6 +310,10 @@ private:
     void set_fix_satellite_status(char c_fix_satellite_status);
 
     void set_mode(char c_mode);
+
+    void set_hour(char *hour);
+
+    void set_date(char *date);
 
 };
 

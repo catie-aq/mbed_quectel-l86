@@ -17,9 +17,6 @@ L86::L86(RawSerial *uart)
     _movement_informations.speed_kmh = 0.0;
     _movement_informations.speed_knots = 0.0;
 
-    memset(_global_informations.date, 0, 6);
-    memset(_global_informations.time, 0, 10);
-
 }
 
 void L86::start_receive()
@@ -399,14 +396,9 @@ double L86::speed()
     }
 }
 
-char *L86::time()
+time_t L86::time()
 {
-    return (char *)_global_informations.time;
-}
-
-char *L86::date()
-{
-    return (char *)_global_informations.date;
+    return mktime(&_global_informations.time);
 }
 
 L86::PositionningMode L86::positionning_mode()
@@ -533,8 +525,8 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
     int limit = 4;
     switch (command_type) {
         case NmeaCommandType::RMC:
-            sprintf(_global_informations.date, "%c%c/%c%c/20%c%c", parameters[8][0], parameters[8][1], parameters[8][2], parameters[8][3], parameters[8][4], parameters[8][5]);
-            sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[0][0], parameters[0][1], parameters[0][2], parameters[0][3], parameters[0][4], parameters[0][5]);
+            set_date(parameters[8]);
+            set_hour(parameters[0]);
             set_positionning_mode(parameters[11][0]);
             sprintf(_position_informations.latitude, "%s%c", parameters[2], parameters[3][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[4], parameters[5][0]);
@@ -548,7 +540,7 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             break;
 
         case NmeaCommandType::GGA:
-            sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[0][0], parameters[0][1], parameters[0][2], parameters[0][3], parameters[0][4], parameters[0][5]);
+            set_hour(parameters[0]);
             set_fix_status(parameters[5][0]);
             sprintf(_position_informations.latitude, "%s%c", parameters[1], parameters[2][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[3], parameters[4][0]);
@@ -595,7 +587,7 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             break;
 
         case NmeaCommandType::GLL:
-            sprintf(_global_informations.time, "%c%c:%c%c:%c%c", parameters[4][0], parameters[4][1], parameters[4][2], parameters[4][3], parameters[4][4], parameters[4][5]);
+            set_date(parameters[4]);
             set_positionning_mode(parameters[4][0]);
             sprintf(_position_informations.latitude, "%s%c", parameters[0], parameters[1][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[2], parameters[3][0]);
@@ -668,6 +660,28 @@ void L86::set_mode(char c_mode)
         default:
             _satellites_informations.mode = Mode::UNKNOWN;
     }
+}
+
+void L86::set_hour(char *hour)
+{
+    char time[2] = "";
+    sprintf(time, "%c%c", hour[0], hour[1]);
+    _global_informations.time.tm_hour = atoi(time);
+    sprintf(time, "%c%c", hour[2], hour[3]);
+    _global_informations.time.tm_min = atoi(time);
+    sprintf(time, "%c%c", hour[4], hour[5]);
+    _global_informations.time.tm_sec = atoi(time);
+}
+
+void L86::set_date(char *date)
+{
+    char time[2] = "";
+    sprintf(time, "%c%c", date[0], date[1]);
+    _global_informations.time.tm_mday = atoi(time);
+    sprintf(time, "%c%c", date[2], date[3]);
+    _global_informations.time.tm_mon = atoi(time) - 1;
+    sprintf(time, "%c%c", date[4], date[5]);
+    _global_informations.time.tm_year = 2000 + atoi(time) - 1900;
 }
 
 
