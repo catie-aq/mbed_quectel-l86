@@ -381,9 +381,18 @@ double L86::altitude()
     return _position_informations.altitude;
 }
 
-float L86::speed(L86::SpeedUnit unit)
+double L86::speed(L86::SpeedUnit unit)
 {
     if (unit == SpeedUnit::KMH) {
+        return _movement_informations.speed_kmh;
+    } else {
+        return _movement_informations.speed_knots;
+    }
+}
+
+double L86::speed()
+{
+    if (MBED_CONF_L86_SPEED_UNIT == SpeedUnit::KMH) {
         return _movement_informations.speed_kmh;
     } else {
         return _movement_informations.speed_knots;
@@ -420,17 +429,17 @@ char L86::mode()
     return _satellites_informations.mode;
 }
 
-float L86::pdop()
+double L86::pdop()
 {
     return _satellites_informations.pdop;
 }
 
-float L86::hdop()
+double L86::hdop()
 {
     return _satellites_informations.hdop;
 }
 
-float L86::vdop()
+double L86::vdop()
 {
     return _satellites_informations.vdop;
 }

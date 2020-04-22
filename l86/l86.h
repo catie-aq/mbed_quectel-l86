@@ -6,6 +6,16 @@
 #include <cstdlib>
 #include <bitset>
 
+#define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KMH
+
+#ifdef MBED_CONF_L86_SPEED_UNIT_KMH
+#define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KMH
+#endif
+
+#ifdef MBED_CONF_L86_SPEED_UNIT_KNOTS
+#define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KNOTS
+#endif
+
 class L86
 {
 
@@ -25,8 +35,8 @@ public:
     } Position;
 
     typedef struct {
-        float speed_kmh;
-        float speed_knots;
+        double speed_kmh;
+        double speed_knots;
     } Movement;
 
     typedef struct {
@@ -40,9 +50,9 @@ public:
         int satellites_count;
         char mode;
         Satellite satellites[10];
-        float pdop;
-        float hdop;
-        float vdop;
+        double pdop;
+        double hdop;
+        double vdop;
     } Satellites_info;
 
     /* Start mode*/
@@ -186,7 +196,9 @@ public:
 
     double altitude();
 
-    float speed(SpeedUnit unit); /* TODO Add enum to know the unit */
+    double speed(SpeedUnit unit);
+
+    double speed();
 
     char *time();
 
@@ -200,11 +212,11 @@ public:
 
     char mode();
 
-    float pdop();
+    double pdop();
 
-    float hdop();
+    double hdop();
 
-    float vdop();
+    double vdop();
 
 
 private:
