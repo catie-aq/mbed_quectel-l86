@@ -11,8 +11,8 @@ L86::L86(RawSerial *uart)
     _uart = uart;
 
     _position_informations.altitude = 0.0;
-    memset(_position_informations.latitude, 0, 10);
-    memset(_position_informations.longitude, 0, 11);
+    _position_informations.latitude = 0.0;
+    _position_informations.longitude = 0.0;
 
     _movement_informations.speed_kmh = 0.0;
     _movement_informations.speed_knots = 0.0;
@@ -363,14 +363,14 @@ void L86::standby_mode(StandbyMode standby_mode)
     }
 }
 
-char *L86::latitude()
+double L86::latitude()
 {
-    return (char *)_position_informations.latitude;
+    return _position_informations.latitude;
 }
 
-char *L86::longitude()
+double L86::longitude()
 {
-    return (char *)_position_informations.longitude;
+    return _position_informations.longitude;
 }
 
 double L86::altitude()
@@ -515,35 +515,46 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
     int limit = 4;
     switch (command_type) {
         case NmeaCommandType::RMC:
-            set_date(parameters[8]);
-            set_time(parameters[0]);
             set_positionning_mode(parameters[11][0]);
-            sprintf(_position_informations.latitude, "%s%c", parameters[2], parameters[3][0]);
-            sprintf(_position_informations.longitude, "%s%c", parameters[4], parameters[5][0]);
-            _movement_informations.speed_knots = atof(parameters[6]);
+            if (_global_informations.positionning_mode != PositionningMode::NO_FIX && _global_informations.positionning_mode != PositionningMode::UNKNOWN) {
+                set_date(parameters[8]);
+                set_time(parameters[0]);
+
+                set_latitude(parameters[2], parameters[3][0]);
+                set_longitude(parameters[4], parameters[5][0]);
+                _movement_informations.speed_knots = atof(parameters[6]);
+            }
             break;
 
         case NmeaCommandType::VTG:
             set_positionning_mode(parameters[8][0]);
-            _movement_informations.speed_knots = atof(parameters[4]);
-            _movement_informations.speed_kmh = atof(parameters[6]);
+            if (_global_informations.positionning_mode != PositionningMode::NO_FIX && _global_informations.positionning_mode != PositionningMode::UNKNOWN) {
+                _movement_informations.speed_knots = atof(parameters[4]);
+                _movement_informations.speed_kmh = atof(parameters[6]);
+            }
             break;
 
         case NmeaCommandType::GGA:
-            set_time(parameters[0]);
             set_fix_status(parameters[5][0]);
-            sprintf(_position_informations.latitude, "%s%c", parameters[1], parameters[2][0]);
-            sprintf(_position_informations.longitude, "%s%c", parameters[3], parameters[4][0]);
-            _position_informations.altitude = atof(parameters[8]);
-            _satellites_informations.satellite_count = atoi(parameters[6]);
+            if (_global_informations.fix_status != FixStatusGGA::INVALID && _global_informations.fix_status != FixStatusGGA::UNKNOWN) {
+                set_time(parameters[0]);
+                set_latitude(parameters[1], parameters[2][0]);
+                set_longitude(parameters[3], parameters[4][0]);
+                _position_informations.altitude = atof(parameters[8]);
+                _satellites_informations.satellite_count = atoi(parameters[6]);
+            }
             break;
 
         case NmeaCommandType::GSA:
-            set_mode(parameters[0][0]);
             set_fix_satellite_status(parameters[1][0]);
-            _dilution_of_precision.horizontal = atof(parameters[15]);
-            _dilution_of_precision.positional = atof(parameters[14]);
-            _dilution_of_precision.vertical = atof(parameters[16]);
+            if (_satellites_informations.status != FixStatusGSA::NOFIX && _satellites_informations.status != FixStatusGSA::UNKNOWN) {
+                set_mode(parameters[0][0]);
+
+                _dilution_of_precision.horizontal = atof(parameters[15]);
+                _dilution_of_precision.positional = atof(parameters[14]);
+                _dilution_of_precision.vertical = atof(parameters[16]);
+            }
+
             break;
 
         case NmeaCommandType::GSV:
@@ -579,8 +590,8 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
         case NmeaCommandType::GLL:
             set_date(parameters[4]);
             set_positionning_mode(parameters[4][0]);
-            sprintf(_position_informations.latitude, "%s%c", parameters[0], parameters[1][0]);
-            sprintf(_position_informations.longitude, "%s%c", parameters[2], parameters[3][0]);
+            set_latitude(parameters[0], parameters[1][0]);
+            set_longitude(parameters[2], parameters[3][0]);
     }
 }
 
@@ -672,6 +683,22 @@ void L86::set_date(char *date)
     _global_informations.time.tm_mon = atoi(buffer) - 1;
     sprintf(buffer, "%c%c", date[4], date[5]);
     _global_informations.time.tm_year = 2000 + atoi(buffer) - 1900;
+}
+
+void L86::set_latitude(char *latitude, char direction)
+{
+    _position_informations.latitude = atof(latitude);
+    if (direction == 'S') {
+        _position_informations.latitude *= -1;
+    }
+}
+
+void L86::set_longitude(char *longitude, char position)
+{
+    _position_informations.longitude = atof(longitude);
+    if (position == 'E') {
+        _position_informations.longitude *= -1;
+    }
 }
 
 

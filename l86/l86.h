@@ -58,9 +58,9 @@ public:
     } Satellite;
 
     typedef struct {
-        char latitude[10];
+        double latitude;
         double altitude;
-        char longitude[11];
+        double longitude;
     } Position;
 
     typedef struct {
@@ -223,9 +223,9 @@ public:
 
     Satellite *satellites();
 
-    char *latitude();
+    double latitude();
 
-    char *longitude();
+    double longitude();
 
     double altitude();
 
@@ -315,6 +315,10 @@ private:
     void set_time(char *time);
 
     void set_date(char *date);
+
+    void set_longitude(char *longitude, char indicator);
+
+    void set_latitude(char *latitude, char indicator);
 
 };
 
