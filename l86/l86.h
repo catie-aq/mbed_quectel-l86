@@ -312,7 +312,7 @@ private:
 
     void set_mode(char c_mode);
 
-    void set_hour(char *hour);
+    void set_time(char *time);
 
     void set_date(char *date);
 

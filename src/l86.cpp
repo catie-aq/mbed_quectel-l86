@@ -516,7 +516,7 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
     switch (command_type) {
         case NmeaCommandType::RMC:
             set_date(parameters[8]);
-            set_hour(parameters[0]);
+            set_time(parameters[0]);
             set_positionning_mode(parameters[11][0]);
             sprintf(_position_informations.latitude, "%s%c", parameters[2], parameters[3][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[4], parameters[5][0]);
@@ -530,7 +530,7 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             break;
 
         case NmeaCommandType::GGA:
-            set_hour(parameters[0]);
+            set_time(parameters[0]);
             set_fix_status(parameters[5][0]);
             sprintf(_position_informations.latitude, "%s%c", parameters[1], parameters[2][0]);
             sprintf(_position_informations.longitude, "%s%c", parameters[3], parameters[4][0]);
@@ -652,26 +652,26 @@ void L86::set_mode(char c_mode)
     }
 }
 
-void L86::set_hour(char *hour)
+void L86::set_time(char *time)
 {
-    char time[2] = "";
-    sprintf(time, "%c%c", hour[0], hour[1]);
-    _global_informations.time.tm_hour = atoi(time);
-    sprintf(time, "%c%c", hour[2], hour[3]);
-    _global_informations.time.tm_min = atoi(time);
-    sprintf(time, "%c%c", hour[4], hour[5]);
-    _global_informations.time.tm_sec = atoi(time);
+    char buffer[2] = "";
+    sprintf(buffer, "%c%c", time[0], time[1]);
+    _global_informations.time.tm_hour = atoi(buffer);
+    sprintf(buffer, "%c%c", time[2], time[3]);
+    _global_informations.time.tm_min = atoi(buffer);
+    sprintf(buffer, "%c%c", time[4], time[5]);
+    _global_informations.time.tm_sec = atoi(buffer);
 }
 
 void L86::set_date(char *date)
 {
-    char time[2] = "";
-    sprintf(time, "%c%c", date[0], date[1]);
-    _global_informations.time.tm_mday = atoi(time);
-    sprintf(time, "%c%c", date[2], date[3]);
-    _global_informations.time.tm_mon = atoi(time) - 1;
-    sprintf(time, "%c%c", date[4], date[5]);
-    _global_informations.time.tm_year = 2000 + atoi(time) - 1900;
+    char buffer[2] = "";
+    sprintf(buffer, "%c%c", date[0], date[1]);
+    _global_informations.time.tm_mday = atoi(buffer);
+    sprintf(buffer, "%c%c", date[2], date[3]);
+    _global_informations.time.tm_mon = atoi(buffer) - 1;
+    sprintf(buffer, "%c%c", date[4], date[5]);
+    _global_informations.time.tm_year = 2000 + atoi(buffer) - 1900;
 }
 
 
