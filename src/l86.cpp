@@ -499,8 +499,10 @@ void L86::callback_rx(void)
 
             /* Parse arguments */
             int index_argument = 0;
+            int index = 0;
             unsigned char i = 0;
-            for (int index = PARAMETERS_BEGIN ; answer[index] != '*' ; index++) {
+
+            for (index = PARAMETERS_BEGIN ; answer[index] != '*' ; index++) {
                 if (answer[index] == ',') {
                     index_argument++;
                     i = 0;
@@ -508,6 +510,10 @@ void L86::callback_rx(void)
                     parameters[index_argument][i] = answer[index];
                     i++;
                 }
+            }
+
+            if (!check_crc(answer, index)) {
+                return;
             }
 
             /* Update informations */
@@ -799,4 +805,12 @@ void L86::set_longitude(char *longitude, char position)
     }
 }
 
+bool L86::check_crc(char *message, int index)
+{
+    char received_checksum[2];
+    char real_checksum[2];
+    sprintf(received_checksum, "%c%c", message[index + 1], message[index + 2]);
+    sprintf(real_checksum, "%X", calculate_checksum(message));
+    return (strcmp(received_checksum, real_checksum) == 0);
+}
 
