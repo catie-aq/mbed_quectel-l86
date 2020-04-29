@@ -515,7 +515,6 @@ void L86::callback_rx(void)
             if (!check_crc(answer, index)) {
                 return;
             }
-
             /* Update informations */
             set_parameter(parameters, response_type);
         } else if (answer[1] == 'P' && _waiting_ack == true) {     /* Trames PMTK */
@@ -813,4 +812,3 @@ bool L86::check_crc(char *message, int index)
     sprintf(real_checksum, "%X", calculate_checksum(message));
     return (strcmp(received_checksum, real_checksum) == 0);
 }
-
