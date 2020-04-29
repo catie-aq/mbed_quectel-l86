@@ -28,7 +28,7 @@ public:
         GALILEO_FULL,
         BEIDOU
     };
-	#define SATELLITE_SYSTEMS_COUNT 5
+#define SATELLITE_SYSTEMS_COUNT 5
 
     /* Standby mode */
     enum class StandbyMode {
@@ -49,7 +49,7 @@ public:
         GSV,
         GLL
     };
-	#define NMEA_COMMANDS_COUNT 6
+#define NMEA_COMMANDS_COUNT 6
 
     /* Frequencies supported */
     enum class NmeaFrequency {
@@ -193,6 +193,8 @@ private:
      *  Stop receiving message from L86 module
      */
     void stop_receive();
+
+    bool check_crc(char *message, int index);
 };
 
 #endif /* CATIE_SIXTRON_L86_H_ */

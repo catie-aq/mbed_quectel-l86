@@ -242,7 +242,7 @@ void L86::set_satellite_system(SatelliteSystems satellite_systems)
     for (int i = 0 ; i < message.nb_param ; i++) {
         *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
     }
-    if(satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
         message.parameters[0] = (char *)"1";
     } else {
         message.parameters[0] = (char *)"0";
@@ -398,7 +398,8 @@ void L86::callback_rx(void)
             /* Parse arguments */
             int index_argument = 0;
             unsigned char i = 0;
-            for (int index = 7 ; answer[index] != '*' ; index++) {
+            int index;
+            for (index = 7 ; answer[index] != '*' ; index++) {
                 if (answer[index] == ',') {
                     index_argument++;
                     i = 0;
@@ -406,6 +407,10 @@ void L86::callback_rx(void)
                     parameters[index_argument][i] = answer[index];
                     i++;
                 }
+            }
+
+            if (!check_crc(answer, index)) {
+                return;
             }
 
             /* Update informations */
@@ -461,5 +466,14 @@ unsigned char L86::calculate_checksum(char *message)
         i++;
     }
     return sum;
+}
+
+bool L86::check_crc(char *message, int index)
+{
+    char received_checksum[2];
+    char real_checksum[2];
+    sprintf(received_checksum, "%c%c", message[index + 1], message[index + 2]);
+    sprintf(real_checksum, "%X", calculate_checksum(message));
+    return (strcmp(received_checksum, real_checksum) == 0);
 }
 
