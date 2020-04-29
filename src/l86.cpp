@@ -214,6 +214,62 @@ void L86::set_position_fix_interval(uint16_t interval)
     write_pmtk_message(message);
 }
 
+<<<<<<< HEAD
+=======
+void L86::set_satellite_system(SatelliteSystems satellite_systems)
+{
+
+    Pmtk_message message;
+    message.packet_type[0] = '3';
+    message.packet_type[1] = '5';
+    message.packet_type[2] = '3';
+    message.is_command = false;
+    message.nb_param = 5;
+    message.parameters = (char **) malloc(sizeof(*message.parameters) * message.nb_param);
+    for (int i = 0 ; i < message.nb_param ; i++) {
+        *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
+    }
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
+        message.parameters[0] = (char *)"1";
+    } else {
+        message.parameters[0] = (char *)"0";
+    }
+
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GLONASS))) {
+        message.parameters[1] = (char *)"1";
+    } else {
+        message.parameters[1] = (char *)"0";
+    }
+
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO))) {
+        message.parameters[2] = (char *)"1";
+    } else {
+        message.parameters[2] = (char *)"0";
+    }
+
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO_FULL))) {
+        message.parameters[3] = (char *)"1";
+    } else {
+        message.parameters[3] = (char *)"0";
+    }
+
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::BEIDOU))) {
+        message.parameters[4] = (char *)"1";
+    } else {
+        message.parameters[4] = (char *)"0";
+    }
+
+    message.ack = true;
+
+    this->write_pmtk_message(message);
+
+    for (int i = 0 ; i < message.nb_param ; i++) {
+        free(message.parameters[i]);
+        message.parameters[i] = NULL;
+    }
+}
+
+>>>>>>> Create crc check method
 void L86::start(StartMode start_mode)
 {
     Pmtk_message message;
@@ -408,7 +464,8 @@ void L86::callback_rx(void)
             /* Parse arguments */
             int index_argument = 0;
             unsigned char i = 0;
-            for (int index = 7 ; answer[index] != '*' ; index++) {
+            int index;
+            for (index = 7 ; answer[index] != '*' ; index++) {
                 if (answer[index] == ',') {
                     index_argument++;
                     i = 0;
@@ -416,6 +473,10 @@ void L86::callback_rx(void)
                     parameters[index_argument][i] = answer[index];
                     i++;
                 }
+            }
+
+            if (!check_crc(answer, index)) {
+                return;
             }
 
             /* Update informations */
@@ -504,6 +565,7 @@ unsigned char L86::calculate_checksum(char *message)
     return sum;
 }
 
+<<<<<<< HEAD
 void L86::start_receive()
 {
     this->_uart->attach(callback(this, &L86::callback_rx), RawSerial::RxIrq);
@@ -709,3 +771,14 @@ void L86::set_longitude(char *longitude, char position)
 }
 
 
+=======
+bool L86::check_crc(char *message, int index)
+{
+    char received_checksum[2];
+    char real_checksum[2];
+    sprintf(received_checksum, "%c%c", message[index + 1], message[index + 2]);
+    sprintf(real_checksum, "%X", calculate_checksum(message));
+    return (strcmp(received_checksum, real_checksum) == 0);
+}
+
+>>>>>>> Create crc check method
