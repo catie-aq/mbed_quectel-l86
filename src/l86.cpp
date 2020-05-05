@@ -21,7 +21,6 @@ L86::L86(RawSerial *uart)
 
 void L86::set_satellite_system(SatelliteSystems satellite_systems)
 {
-
     Pmtk_message message;
     message.packet_type[0] = '3';
     message.packet_type[1] = '5';
@@ -63,7 +62,6 @@ void L86::set_satellite_system(SatelliteSystems satellite_systems)
     }
 
     message.ack = true;
-
     this->write_pmtk_message(message);
 }
 
@@ -177,6 +175,7 @@ void L86::set_navigation_mode(NavigationMode navigation_mode)
             message.parameters[0] = (char *)"3";
             break;
     }
+
     message.ack = true;
     write_pmtk_message(message);
 }
@@ -297,11 +296,6 @@ void L86::standby_mode(StandbyMode standby_mode)
         free(message.parameters[i]);
         message.parameters[i] = NULL;
     }
-}
-
-char *L86::get_last_received_command()
-{
-    return (char *)_last_received_command;
 }
 
 L86::Satellite *L86::satellites()
@@ -439,7 +433,7 @@ void L86::callback_rx(void)
 
 void L86::write_pmtk_message(Pmtk_message message)
 {
-    /* Formation de le trame PMTK */
+    /* PMTK frame setting up*/
     char packet[100];
     char packet_temp[100];
     sprintf(packet, "$PMTK%c%c%c", message.packet_type[0], message.packet_type[1], message.packet_type[2]);

@@ -202,12 +202,6 @@ public:
      */
     void standby_mode(StandbyMode standby_mode);
 
-    /*!
-     *  Get last received command from the L86 module
-     *
-     */
-    char *get_last_received_command();
-
     Satellite *satellites();
 
     double latitude();
@@ -259,7 +253,7 @@ private:
 
 
     /*!
-     * Callback triggered when a caracter is received by UART
+     *  Callback triggered when a caracter is received by UART
      *
      */
     void callback_rx(void);
