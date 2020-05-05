@@ -226,6 +226,8 @@ public:
 
     FixStatusGGA fix_status();
 
+    FixStatusGSA fix_satellite_status();
+
     int satellite_count();
 
     Mode mode();

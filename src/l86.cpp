@@ -19,65 +19,54 @@ L86::L86(RawSerial *uart)
 
 }
 
-void L86::start_receive()
+void L86::set_satellite_system(SatelliteSystems satellite_systems)
 {
-    this->_uart->attach(callback(this, &L86::callback_rx), RawSerial::RxIrq);
-}
 
-void L86::stop_receive()
-{
-    this->_uart->attach(NULL);
-}
-
-void L86::write_pmtk_message(Pmtk_message message)
-{
-    /* Formation de le trame PMTK */
-    char packet[100];
-    char packet_temp[100];
-    sprintf(packet, "$PMTK%c%c%c", message.packet_type[0], message.packet_type[1], message.packet_type[2]);
-
+    Pmtk_message message;
+    message.packet_type[0] = '3';
+    message.packet_type[1] = '5';
+    message.packet_type[2] = '3';
+    message.is_command = false;
+    message.nb_param = 5;
+    message.parameters = (char **) malloc(sizeof(*message.parameters) * message.nb_param);
     for (int i = 0 ; i < message.nb_param ; i++) {
-        sprintf(packet_temp, "%s", packet);
-        sprintf(packet, "%s,%s", packet_temp, message.parameters[i]);
+        *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
+    }
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
+        message.parameters[0] = (char *)"1";
+    } else {
+        message.parameters[0] = (char *)"0";
     }
 
-    sprintf(packet_temp, "%s*", packet);
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GLONASS))) {
+        message.parameters[1] = (char *)"1";
+    } else {
+        message.parameters[1] = (char *)"0";
+    }
 
-    unsigned char checksum = 0;
-    checksum = this->calculate_checksum(packet_temp);
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO))) {
+        message.parameters[2] = (char *)"1";
+    } else {
+        message.parameters[2] = (char *)"0";
+    }
 
-    sprintf(packet, "%s%X\r\n", packet_temp, checksum);
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO_FULL))) {
+        message.parameters[3] = (char *)"1";
+    } else {
+        message.parameters[3] = (char *)"0";
+    }
 
-    /* Send packet until received ack and get confirmation that command succeeds */
-    do {
-        _uart->write((uint8_t *)packet, strlen(packet), NULL);
-        if (message.ack) {
-            _waiting_ack = true;
-            _pmtk_command_result = false;
-            char ack_message[50];
-            unsigned char index = 0;
-            while (index < message.anwser_size) {
-                char received_character = _uart->getc();
-                if ((received_character == '$' && index == 0) || (received_character != '$' && index != 0)) {
-                    ack_message[index] = received_character;
-                    index++;
-                }
-            }
-            if (ack_message[5] == '0' && ack_message[6] == '0' && ack_message[7] == '1') {  /* ack frame */
-                _waiting_ack = false;
-                if (ack_message[9] == message.packet_type[0] && ack_message[10] == message.packet_type[1] && ack_message[11] == message.packet_type[2]) { /* Good command ack */
-                    if (ack_message[13] == '3') { /* Command succeeds */
-                        _pmtk_command_result = true;
-                    }
-                }
-            }
-        } else {
-            this->_waiting_ack = false;
-            this->_pmtk_command_result = true;
-        }
-        ThisThread::sleep_for(200);
-    } while (_waiting_ack or !_pmtk_command_result);
+    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::BEIDOU))) {
+        message.parameters[4] = (char *)"1";
+    } else {
+        message.parameters[4] = (char *)"0";
+    }
+
+    message.ack = true;
+
+    this->write_pmtk_message(message);
 }
+
 
 void L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency)
 {
@@ -226,59 +215,6 @@ void L86::set_position_fix_interval(uint16_t interval)
     write_pmtk_message(message);
 }
 
-void L86::set_satellite_system(SatelliteSystems satellite_systems)
-{
-
-    Pmtk_message message;
-    message.packet_type[0] = '3';
-    message.packet_type[1] = '5';
-    message.packet_type[2] = '3';
-    message.is_command = false;
-    message.nb_param = 5;
-    message.parameters = (char **) malloc(sizeof(*message.parameters) * message.nb_param);
-    for (int i = 0 ; i < message.nb_param ; i++) {
-        *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
-    }
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
-        message.parameters[0] = (char *)"1";
-    } else {
-        message.parameters[0] = (char *)"0";
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GLONASS))) {
-        message.parameters[1] = (char *)"1";
-    } else {
-        message.parameters[1] = (char *)"0";
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO))) {
-        message.parameters[2] = (char *)"1";
-    } else {
-        message.parameters[2] = (char *)"0";
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO_FULL))) {
-        message.parameters[3] = (char *)"1";
-    } else {
-        message.parameters[3] = (char *)"0";
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::BEIDOU))) {
-        message.parameters[4] = (char *)"1";
-    } else {
-        message.parameters[4] = (char *)"0";
-    }
-
-    message.ack = true;
-
-    this->write_pmtk_message(message);
-
-    /*for (int i = 0 ; i < message.nb_param ; i++) {
-        free(message.parameters[i]);
-        message.parameters[i] = NULL;
-    }*/
-}
-
 void L86::start(StartMode start_mode)
 {
     Pmtk_message message;
@@ -363,6 +299,16 @@ void L86::standby_mode(StandbyMode standby_mode)
     }
 }
 
+char *L86::get_last_received_command()
+{
+    return (char *)_last_received_command;
+}
+
+L86::Satellite *L86::satellites()
+{
+    return _satellites_informations.satellites;
+}
+
 double L86::latitude()
 {
     return _position_informations.latitude;
@@ -409,6 +355,11 @@ L86::PositionningMode L86::positionning_mode()
 L86::FixStatusGGA L86::fix_status()
 {
     return _global_informations.fix_status;
+}
+
+L86::FixStatusGSA L86::fix_satellite_status()
+{
+    return _satellites_informations.status;
 }
 
 int L86::satellite_count()
@@ -486,9 +437,54 @@ void L86::callback_rx(void)
     }
 }
 
-char *L86::get_last_received_command()
+void L86::write_pmtk_message(Pmtk_message message)
 {
-    return (char *)_last_received_command;
+    /* Formation de le trame PMTK */
+    char packet[100];
+    char packet_temp[100];
+    sprintf(packet, "$PMTK%c%c%c", message.packet_type[0], message.packet_type[1], message.packet_type[2]);
+
+    for (int i = 0 ; i < message.nb_param ; i++) {
+        sprintf(packet_temp, "%s", packet);
+        sprintf(packet, "%s,%s", packet_temp, message.parameters[i]);
+    }
+
+    sprintf(packet_temp, "%s*", packet);
+
+    unsigned char checksum = 0;
+    checksum = this->calculate_checksum(packet_temp);
+
+    sprintf(packet, "%s%X\r\n", packet_temp, checksum);
+
+    /* Send packet until received ack and get confirmation that command succeeds */
+    do {
+        _uart->write((uint8_t *)packet, strlen(packet), NULL);
+        if (message.ack) {
+            _waiting_ack = true;
+            _pmtk_command_result = false;
+            char ack_message[50];
+            unsigned char index = 0;
+            while (index < message.anwser_size) {
+                char received_character = _uart->getc();
+                if ((received_character == '$' && index == 0) || (received_character != '$' && index != 0)) {
+                    ack_message[index] = received_character;
+                    index++;
+                }
+            }
+            if (ack_message[5] == '0' && ack_message[6] == '0' && ack_message[7] == '1') {  /* ack frame */
+                _waiting_ack = false;
+                if (ack_message[9] == message.packet_type[0] && ack_message[10] == message.packet_type[1] && ack_message[11] == message.packet_type[2]) { /* Good command ack */
+                    if (ack_message[13] == '3') { /* Command succeeds */
+                        _pmtk_command_result = true;
+                    }
+                }
+            }
+        } else {
+            this->_waiting_ack = false;
+            this->_pmtk_command_result = true;
+        }
+        ThisThread::sleep_for(200);
+    } while (_waiting_ack or !_pmtk_command_result);
 }
 
 unsigned char L86::calculate_checksum(char *message)
@@ -507,6 +503,16 @@ unsigned char L86::calculate_checksum(char *message)
         i++;
     }
     return sum;
+}
+
+void L86::start_receive()
+{
+    this->_uart->attach(callback(this, &L86::callback_rx), RawSerial::RxIrq);
+}
+
+void L86::stop_receive()
+{
+    this->_uart->attach(NULL);
 }
 
 void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
