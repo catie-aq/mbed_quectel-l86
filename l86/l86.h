@@ -79,7 +79,6 @@ public:
         Mode mode;
         FixStatusGSA status;
         Satellite satellites[10];
-
     } Satellites_info;
 
     typedef struct {
@@ -159,18 +158,6 @@ public:
     *  \param uart
     */
     L86(RawSerial *uart);
-
-    /*!
-     *  Get the last received latitude
-     *
-     */
-    char *get_latitude();
-
-    /*!
-     *  Get the last received longitude
-     *
-     */
-    char *get_longitude();
 
     /*!
      *  Select a satellite system
