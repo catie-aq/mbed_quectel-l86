@@ -214,62 +214,6 @@ void L86::set_position_fix_interval(uint16_t interval)
     write_pmtk_message(message);
 }
 
-<<<<<<< HEAD
-=======
-void L86::set_satellite_system(SatelliteSystems satellite_systems)
-{
-
-    Pmtk_message message;
-    message.packet_type[0] = '3';
-    message.packet_type[1] = '5';
-    message.packet_type[2] = '3';
-    message.is_command = false;
-    message.nb_param = 5;
-    message.parameters = (char **) malloc(sizeof(*message.parameters) * message.nb_param);
-    for (int i = 0 ; i < message.nb_param ; i++) {
-        *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
-    }
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
-        message.parameters[0] = (char *)"1";
-    } else {
-        message.parameters[0] = (char *)"0";
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GLONASS))) {
-        message.parameters[1] = (char *)"1";
-    } else {
-        message.parameters[1] = (char *)"0";
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO))) {
-        message.parameters[2] = (char *)"1";
-    } else {
-        message.parameters[2] = (char *)"0";
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO_FULL))) {
-        message.parameters[3] = (char *)"1";
-    } else {
-        message.parameters[3] = (char *)"0";
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::BEIDOU))) {
-        message.parameters[4] = (char *)"1";
-    } else {
-        message.parameters[4] = (char *)"0";
-    }
-
-    message.ack = true;
-
-    this->write_pmtk_message(message);
-
-    for (int i = 0 ; i < message.nb_param ; i++) {
-        free(message.parameters[i]);
-        message.parameters[i] = NULL;
-    }
-}
-
->>>>>>> Create crc check method
 void L86::start(StartMode start_mode)
 {
     Pmtk_message message;
@@ -478,10 +422,8 @@ void L86::callback_rx(void)
             if (!check_crc(answer, index)) {
                 return;
             }
-
-            /* Update informations */
-
             set_parameter(parameters, response_type);
+
         } else if (answer[1] == 'P' && _waiting_ack == true) {     /* Trames PMTK */
             if (answer[9] == _current_pmtk_command_code[0] && answer[10] == _current_pmtk_command_code[1] && answer[11] == _current_pmtk_command_code[2]) {
                 char flag = answer[12];
@@ -565,7 +507,6 @@ unsigned char L86::calculate_checksum(char *message)
     return sum;
 }
 
-<<<<<<< HEAD
 void L86::start_receive()
 {
     this->_uart->attach(callback(this, &L86::callback_rx), RawSerial::RxIrq);
@@ -754,14 +695,6 @@ void L86::set_date(char *date)
     _global_informations.time.tm_year = 2000 + atoi(buffer) - 1900;
 }
 
-void L86::set_latitude(char *latitude, char direction)
-{
-    _position_informations.latitude = atof(latitude);
-    if (direction == 'S') {
-        _position_informations.latitude *= -1;
-    }
-}
-
 void L86::set_longitude(char *longitude, char position)
 {
     _position_informations.longitude = atof(longitude);
@@ -770,8 +703,14 @@ void L86::set_longitude(char *longitude, char position)
     }
 }
 
+void L86::set_latitude(char *latitude, char direction)
+{
+    _position_informations.latitude = atof(latitude);
+    if (direction == 'S') {
+        _position_informations.latitude *= -1;
+    }
+}
 
-=======
 bool L86::check_crc(char *message, int index)
 {
     char received_checksum[2];
@@ -780,5 +719,3 @@ bool L86::check_crc(char *message, int index)
     sprintf(real_checksum, "%X", calculate_checksum(message));
     return (strcmp(received_checksum, real_checksum) == 0);
 }
-
->>>>>>> Create crc check method
