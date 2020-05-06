@@ -4,13 +4,88 @@
 #include "mbed.h"
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include <bitset>
 
+#define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KMH
+
+#ifdef MBED_CONF_L86_SPEED_UNIT_KMH
+#define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KMH
+#endif
+
+#ifdef MBED_CONF_L86_SPEED_UNIT_KNOTS
+#define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KNOTS
+#endif
 
 class L86
 {
 
 public:
+
+    enum class PositionningMode {
+        NO_FIX,
+        AUTONOMOUS_GNSS_FIX,
+        DIFFERENTIAL_GNSS_FIX,
+        UNKNOWN
+    };
+
+    enum class FixStatusGGA {
+        INVALID,
+        GNSS_FIX,
+        DGPS_FIX,
+        ESTIMATED_MODE,
+        UNKNOWN
+    };
+
+    enum class FixStatusGSA {
+        NOFIX,
+        FIX2D,
+        FIX3D,
+        UNKNOWN
+    };
+
+    enum class Mode {
+        MANUAL_SWITCH,
+        AUTOMATIC_SWITCH,
+        UNKNOWN
+    };
+
+    typedef struct {
+        uint16_t id;
+        uint16_t elevation;
+        uint16_t azimuth;
+        uint16_t snr;
+    } Satellite;
+
+    typedef struct {
+        double latitude;
+        double altitude;
+        double longitude;
+    } Position;
+
+    typedef struct {
+        double speed_kmh;
+        double speed_knots;
+    } Movement;
+
+    typedef struct {
+        tm time;
+        PositionningMode positionning_mode;
+        FixStatusGGA fix_status;
+    } Informations;
+
+    typedef struct {
+        int satellite_count;
+        Mode mode;
+        FixStatusGSA status;
+        Satellite satellites[10];
+    } Satellites_info;
+
+    typedef struct {
+        double positional;
+        double horizontal;
+        double vertical;
+    } DilutionOfPrecision;
 
     /* Start mode*/
     enum class StartMode {
@@ -28,7 +103,7 @@ public:
         GALILEO_FULL,
         BEIDOU
     };
-	#define SATELLITE_SYSTEMS_COUNT 5
+#define SATELLITE_SYSTEMS_COUNT 5
 
     /* Standby mode */
     enum class StandbyMode {
@@ -49,7 +124,7 @@ public:
         GSV,
         GLL
     };
-	#define NMEA_COMMANDS_COUNT 6
+#define NMEA_COMMANDS_COUNT 6
 
     /* Frequencies supported */
     enum class NmeaFrequency {
@@ -68,6 +143,11 @@ public:
         BALLOON_MODE
     };
 
+    enum class SpeedUnit {
+        KMH,
+        KNOTS
+    };
+
     typedef std::bitset<SATELLITE_SYSTEMS_COUNT> SatelliteSystems;
 
     typedef std::bitset<NMEA_COMMANDS_COUNT> NmeaCommands;
@@ -78,18 +158,6 @@ public:
     *  \param uart
     */
     L86(RawSerial *uart);
-
-    /*!
-     *  Get the last received latitude
-     *
-     */
-    char *get_latitude();
-
-    /*!
-     *  Get the last received longitude
-     *
-     */
-    char *get_longitude();
 
     /*!
      *  Select a satellite system
@@ -134,11 +202,31 @@ public:
      */
     void standby_mode(StandbyMode standby_mode);
 
-    /*!
-     *  Get last received command from the L86 module
-     *
-     */
-    char *get_last_received_command();
+    Satellite *satellites();
+
+    double latitude();
+
+    double longitude();
+
+    double altitude();
+
+    double speed(SpeedUnit unit);
+
+    double speed();
+
+    time_t time();
+
+    PositionningMode positionning_mode();
+
+    FixStatusGGA fix_status();
+
+    FixStatusGSA fix_satellite_status();
+
+    int satellite_count();
+
+    Mode mode();
+
+    DilutionOfPrecision dilution_of_precision();
 
 private:
 
@@ -147,10 +235,12 @@ private:
     char _current_pmtk_command_code[3];
     char _last_received_command[120];
     bool _pmtk_command_result;
-
-    /* Position attributes */
-    char *longitude;
-    char *latitude;
+    int _registered_satellite_count;
+    Position _position_informations;
+    Movement _movement_informations;
+    Informations _global_informations;
+    Satellites_info _satellites_informations;
+    DilutionOfPrecision _dilution_of_precision;
 
     typedef struct {
         char packet_type[3];
@@ -161,8 +251,9 @@ private:
         bool ack;
     } Pmtk_message;
 
+
     /*!
-     * Callback triggered when a caracter is received by UART
+     *  Callback triggered when a caracter is received by UART
      *
      */
     void callback_rx(void);
@@ -193,6 +284,25 @@ private:
      *  Stop receiving message from L86 module
      */
     void stop_receive();
+
+    void set_parameter(char parameters[][10], NmeaCommandType command_type);
+
+    void set_positionning_mode(char c_positionning_mode);
+
+    void set_fix_status(char c_fix_status);
+
+    void set_fix_satellite_status(char c_fix_satellite_status);
+
+    void set_mode(char c_mode);
+
+    void set_time(char *time);
+
+    void set_date(char *date);
+
+    void set_longitude(char *longitude, char indicator);
+
+    void set_latitude(char *latitude, char indicator);
+
 };
 
 #endif /* CATIE_SIXTRON_L86_H_ */
