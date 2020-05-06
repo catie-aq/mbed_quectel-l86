@@ -78,7 +78,7 @@ public:
         int satellite_count;
         Mode mode;
         FixStatusGSA status;
-        Satellite satellites[10];
+        Satellite satellites[20];
     } Satellites_info;
 
     typedef struct {
@@ -227,6 +227,8 @@ public:
     Mode mode();
 
     DilutionOfPrecision dilution_of_precision();
+
+    int registered_satellite_count();
 
 private:
 

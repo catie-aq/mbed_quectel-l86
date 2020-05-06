@@ -371,6 +371,11 @@ L86::DilutionOfPrecision L86::dilution_of_precision()
     return _dilution_of_precision;
 }
 
+int L86::registered_satellite_count()
+{
+    return _registered_satellite_count;
+}
+
 void L86::callback_rx(void)
 {
     static unsigned char index_car = 0;
@@ -558,32 +563,34 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             break;
 
         case NmeaCommandType::GSV:
+            /* last sequence message */
             if (strcmp(parameters[0], parameters[1]) == 0) {
                 limit = 12 - atoi(parameters[2]);
             }
+            /* reset satellites if first sequence message */
+            if (atoi(parameters[1]) == 1) {
+                _registered_satellite_count = 0;
+            }
 
             for (int i = 1 ; i <= limit ; i++) {
-                for (int j = 0 ; j < _registered_satellite_count ; j++) {
-                    int sat_id = atoi(parameters[i * 4 - 1]);
-                    if (_satellites_informations.satellites[j].id == sat_id) {
-                        _satellites_informations.satellites[j].elevation = atoi(parameters[i * 4]);
-                        _satellites_informations.satellites[j].azimuth = atoi(parameters[i * 4 + 1]);
-                        _satellites_informations.satellites[j].snr = atoi(parameters[i * 4 + 2]);
-                        flag = true;
-                        break;
-                    }
-                }
-                if (!flag) { /* Add to the table if not already stored */
-                    Satellite sat;
-                    sat.id = atoi(parameters[i * 4 - 1]);
-                    sat.elevation = atoi(parameters[i * 4]);
-                    sat.azimuth = atoi(parameters[i * 4 + 1]);
-                    sat.snr = atoi(parameters[i * 4 + 2]);
-                    _satellites_informations.satellites[_registered_satellite_count] = sat;
-                    _registered_satellite_count++;
-                    flag = false;
-                }
+                Satellite sat;
+                sat.id = atoi(parameters[i * 4 - 1]);
+                sat.elevation = atoi(parameters[i * 4]);
+                sat.azimuth = atoi(parameters[i * 4 + 1]);
+                sat.snr = atoi(parameters[i * 4 + 2]);
+                _satellites_informations.satellites[_registered_satellite_count] = sat;
+                _registered_satellite_count++;
             }
+            Satellite empty_sat;
+            empty_sat.id = 0;
+            empty_sat.elevation = 0;
+            empty_sat.azimuth = 0;
+            empty_sat.snr = 0;
+
+            for (int i = _registered_satellite_count ; i <= 20 ; i++) {
+                _satellites_informations.satellites[i] = empty_sat;
+            }
+
             _satellites_informations.satellite_count = atoi(parameters[2]);
             break;
 
