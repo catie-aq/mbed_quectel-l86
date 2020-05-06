@@ -587,7 +587,7 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             empty_sat.azimuth = 0;
             empty_sat.snr = 0;
 
-            for (int i = _registered_satellite_count ; i <= 20 ; i++) {
+            for (int i = _registered_satellite_count ; i <= NB_MAX_SATELLITES ; i++) {
                 _satellites_informations.satellites[i] = empty_sat;
             }
 

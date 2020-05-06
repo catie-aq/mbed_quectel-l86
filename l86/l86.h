@@ -17,6 +17,12 @@
 #define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KNOTS
 #endif
 
+constexpr int NB_MAX_SATELLITES = 20;
+constexpr int ID_PACKET_SIZE = 3;
+constexpr int MAX_MESSAGE_SIZE = 120;
+constexpr int MAX_PARAMETER_SIZE = 10;
+constexpr int MAX_ANWSER_SIZE = 19;
+
 class L86
 {
 
@@ -78,7 +84,7 @@ public:
         int satellite_count;
         Mode mode;
         FixStatusGSA status;
-        Satellite satellites[20];
+        Satellite satellites[NB_MAX_SATELLITES];
     } Satellites_info;
 
     typedef struct {
@@ -103,7 +109,7 @@ public:
         GALILEO_FULL,
         BEIDOU
     };
-#define SATELLITE_SYSTEMS_COUNT 5
+    constexpr int SATELLITE_SYSTEMS_COUNT = 5;
 
     /* Standby mode */
     enum class StandbyMode {
@@ -124,7 +130,7 @@ public:
         GSV,
         GLL
     };
-#define NMEA_COMMANDS_COUNT 6
+    constexpr int NMEA_COMMANDS_COUNT = 6;
 
     /* Frequencies supported */
     enum class NmeaFrequency {
@@ -234,8 +240,8 @@ private:
 
     RawSerial *_uart;
     bool _waiting_ack;
-    char _current_pmtk_command_code[3];
-    char _last_received_command[120];
+    char _current_pmtk_command_code[ID_PACKET_SIZE];
+    char _last_received_command[MAX_MESSAGE_SIZE];
     bool _pmtk_command_result;
     int _registered_satellite_count;
     Position _position_informations;
@@ -245,10 +251,10 @@ private:
     DilutionOfPrecision _dilution_of_precision;
 
     typedef struct {
-        char packet_type[3];
+        char packet_type[ID_PACKET_SIZE];
         bool is_command;
         uint8_t nb_param;
-        uint8_t anwser_size = 19;
+        uint8_t anwser_size = MAX_ANWSER_SIZE;
         char **parameters;
         bool ack;
     } Pmtk_message;
@@ -287,7 +293,7 @@ private:
      */
     void stop_receive();
 
-    void set_parameter(char parameters[][10], NmeaCommandType command_type);
+    void set_parameter(char parameters[][MAX_PARAMETER_SIZE], NmeaCommandType command_type);
 
     void set_positionning_mode(char c_positionning_mode);
 
