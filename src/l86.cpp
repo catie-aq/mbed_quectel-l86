@@ -16,15 +16,14 @@ L86::L86(RawSerial *uart)
 
     _movement_informations.speed_kmh = 0.0;
     _movement_informations.speed_knots = 0.0;
-
 }
 
 void L86::set_satellite_system(SatelliteSystems satellite_systems)
 {
     Pmtk_message message;
-    message.packet_type[0] = '3';
-    message.packet_type[1] = '5';
-    message.packet_type[2] = '3';
+    message.packet_type[0] = SATELLITE_SYSTEM_CODE[0];
+    message.packet_type[1] = SATELLITE_SYSTEM_CODE[1];
+    message.packet_type[2] = SATELLITE_SYSTEM_CODE[2];
     message.is_command = false;
     message.nb_param = PARAMETERS_COUNT_SATELLITE_SYSTEM;
     message.parameters = (char **) malloc(sizeof(*message.parameters) * message.nb_param);
@@ -70,9 +69,9 @@ void L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency fr
 {
     Pmtk_message message;
 
-    message.packet_type[0] = '3';
-    message.packet_type[1] = '1';
-    message.packet_type[2] = '4';
+    message.packet_type[0] = NMEA_OUTPUT_FREQUENCY_CODE[0];
+    message.packet_type[1] = NMEA_OUTPUT_FREQUENCY_CODE[1];
+    message.packet_type[2] = NMEA_OUTPUT_FREQUENCY_CODE[2];
     message.is_command = false;
     message.nb_param = PARAMETERS_COUNT_NMEA_OUTPUT_FREQUENCY;
 
@@ -147,9 +146,9 @@ void L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency fr
 void L86::set_navigation_mode(NavigationMode navigation_mode)
 {
     Pmtk_message message;
-    message.packet_type[0] = '8';
-    message.packet_type[1] = '8';
-    message.packet_type[2] = '6';
+    message.packet_type[0] = NAVIGATION_MODE_CODE[0];
+    message.packet_type[1] = NAVIGATION_MODE_CODE[1];
+    message.packet_type[2] = NAVIGATION_MODE_CODE[2];
     message.is_command = false;
     message.nb_param = PARAMETERS_COUNT_NAVIGATION_MODE;
 
@@ -183,11 +182,11 @@ void L86::set_navigation_mode(NavigationMode navigation_mode)
 void L86::set_position_fix_interval(uint16_t interval)
 {
     Pmtk_message message;
-    message.packet_type[0] = '2';
-    message.packet_type[1] = '2';
-    message.packet_type[2] = '0';
+    message.packet_type[0] = POSITION_FIX_INTERVAL_CODE[0];
+    message.packet_type[1] = POSITION_FIX_INTERVAL_CODE[1];
+    message.packet_type[2] = POSITION_FIX_INTERVAL_CODE[2];
     message.is_command = false;
-    message.nb_param = 1;
+    message.nb_param = PARAMETERS_COUNT_POSITION_FIX_INTERVAL;
 
     unsigned char size = 0;
     if (interval >= 100 && interval < 1000) {
@@ -206,9 +205,9 @@ void L86::set_position_fix_interval(uint16_t interval)
     char s_interval[size] = {0};
     sprintf((char *)s_interval, "%d", interval);
     for (int i = 0 ; i < size ; i++) {
-        message.parameters[0][i] = s_interval[i];
+        message.parameters[INTERVAL][i] = s_interval[i];
     }
-    message.parameters[0][size] = '\0';
+    message.parameters[INTERVAL][size] = '\0';
 
     message.ack = true;
     write_pmtk_message(message);
@@ -220,27 +219,27 @@ void L86::start(StartMode start_mode)
 
     switch (start_mode) {
         case StartMode::FULL_COLD_START:
-            message.packet_type[0] = '1';
-            message.packet_type[1] = '0';
-            message.packet_type[2] = '4';
+            message.packet_type[0] = FULL_COLD_START_MODE_CODE[0];
+            message.packet_type[1] = FULL_COLD_START_MODE_CODE[1];
+            message.packet_type[2] = FULL_COLD_START_MODE_CODE[2];
             break;
 
         case StartMode::COLD_START:
-            message.packet_type[0] = '1';
-            message.packet_type[1] = '0';
-            message.packet_type[2] = '3';
+            message.packet_type[0] = COLD_START_MODE_CODE[0];
+            message.packet_type[1] = COLD_START_MODE_CODE[1];
+            message.packet_type[2] = COLD_START_MODE_CODE[2];
             break;
 
         case StartMode::WARM_START:
-            message.packet_type[0] = '1';
-            message.packet_type[1] = '0';
-            message.packet_type[2] = '2';
+            message.packet_type[0] = WARM_START_MODE_CODE[0];
+            message.packet_type[1] = WARM_START_MODE_CODE[1];
+            message.packet_type[2] = WARM_START_MODE_CODE[2];
             break;
 
         case StartMode::HOT_START:
-            message.packet_type[0] = '1';
-            message.packet_type[1] = '0';
-            message.packet_type[2] = '1';
+            message.packet_type[0] = HOT_START_MODE_CODE[0];
+            message.packet_type[1] = HOT_START_MODE_CODE[1];
+            message.packet_type[2] = HOT_START_MODE_CODE[2];
             break;
     }
     message.is_command = true;
@@ -469,7 +468,7 @@ void L86::write_pmtk_message(Pmtk_message message)
                     index++;
                 }
             }
-            if (ack_message[PMTK_PACKET_TYPE_INDEX] == '0' && ack_message[PMTK_PACKET_TYPE_INDEX + 1] == '0' && ack_message[PMTK_PACKET_TYPE_INDEX + 2] == '1') { /* ack frame */
+            if (ack_message[PMTK_PACKET_TYPE_INDEX] == ACK_CODE[0] && ack_message[PMTK_PACKET_TYPE_INDEX + 1] == ACK_CODE[1] && ack_message[PMTK_PACKET_TYPE_INDEX + 2] == ACK_CODE[2]) { /* ack frame */
                 _waiting_ack = false;
                 if (ack_message[PMTK_COMMAND_CODE_INDEX] == message.packet_type[0] && ack_message[PMTK_COMMAND_CODE_INDEX + 1] == message.packet_type[1] && ack_message[PMTK_COMMAND_CODE_INDEX + 2] == message.packet_type[2]) { /* Good command ack */
                     if (ack_message[PMTK_COMMAND_RESULT] == VALID_PACKET_AND_COMMAND_SUCCEED) { /* Command succeeds */
@@ -688,7 +687,7 @@ void L86::set_date(char *date)
     sprintf(buffer, "%c%c", date[2], date[3]);
     _global_informations.time.tm_mon = atoi(buffer) - 1;
     sprintf(buffer, "%c%c", date[4], date[5]);
-    _global_informations.time.tm_year = 2000 + atoi(buffer) - 1900;
+    _global_informations.time.tm_year = 2000 + atoi(buffer) - 1900; /* basic calculs to get year */
 }
 
 void L86::set_latitude(char *latitude, char direction)

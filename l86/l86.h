@@ -17,12 +17,10 @@
 #define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KNOTS
 #endif
 
-constexpr int NB_MAX_SATELLITES = 20;
-constexpr int ID_PACKET_SIZE = 3;
-constexpr int MAX_MESSAGE_SIZE = 120;
-constexpr int MAX_ANWSER_SIZE = 19;
+
 
 constexpr int PARAMETERS_COUNT_SATELLITE_SYSTEM = 5;
+constexpr char SATELLITE_SYSTEM_CODE[] = "353";
 constexpr int GPS_FLAG = 0;
 constexpr int GLONASS_FLAG = 1;
 constexpr int GALILEO_FLAG = 2;
@@ -30,6 +28,7 @@ constexpr int GALILEO_FULL_FLAG = 3;
 constexpr int BEIDOU_FLAG = 4;
 
 constexpr int PARAMETERS_COUNT_NMEA_OUTPUT_FREQUENCY = 5;
+constexpr char NMEA_OUTPUT_FREQUENCY_CODE[] = "314";
 constexpr int GLL_FREQUENCY = 0;
 constexpr int RMC_FREQUENCY = 1;
 constexpr int VTG_FREQUENCY = 2;
@@ -38,18 +37,31 @@ constexpr int GSA_FREQUENCY = 4;
 constexpr int GSV_FREQUENCY = 5;
 
 constexpr int PARAMETERS_COUNT_NAVIGATION_MODE = 1;
+constexpr char NAVIGATION_MODE_CODE[] = "886";
 constexpr int NAVIGATION_MODE = 0;
+
+constexpr int PARAMETERS_COUNT_POSITION_FIX_INTERVAL = 1;
+constexpr char POSITION_FIX_INTERVAL_CODE[] = "220";
+constexpr int INTERVAL = 0;
+
+constexpr char FULL_COLD_START_MODE_CODE[] = "104";
+constexpr char COLD_START_MODE_CODE[] = "103";
+constexpr char WARM_START_MODE_CODE[] = "102";
+constexpr char HOT_START_MODE_CODE[] = "101";
 
 constexpr int PARAMETERS_COUNT_STANDBY_MODE = 1;
 constexpr int STANDBY_MODE = 0;
 constexpr int DEFAULT_PARAMETERS_COUNT_STANDBY_MODE = 6;
 
+constexpr int NB_MAX_SATELLITES = 20;
+constexpr int ID_PACKET_SIZE = 3;
 constexpr int MAX_ANSWER_SIZE = 120;
 constexpr int MAX_PARAMETERS_COUNT = 19;
 constexpr int MAX_PARAMETER_SIZE = 10;
 constexpr int PARAMETERS_BEGIN = 7;
 constexpr int LIMIT_SATELLITES = 4;
 constexpr int MAX_SATELLITES = 12;
+constexpr char ACK_CODE[] = "001";
 
 constexpr int PMTK_COMMAND_CODE_INDEX = 9;
 constexpr int PMTK_COMMAND_RESULT = 13;
@@ -318,7 +330,7 @@ private:
     RawSerial *_uart;
     bool _waiting_ack;
     char _current_pmtk_command_code[ID_PACKET_SIZE];
-    char _last_received_command[MAX_MESSAGE_SIZE];
+    char _last_received_command[MAX_ANSWER_SIZE];
     bool _pmtk_command_result;
     int _registered_satellite_count;
     Position _position_informations;
@@ -331,7 +343,7 @@ private:
         char packet_type[ID_PACKET_SIZE];
         bool is_command;
         uint8_t nb_param;
-        uint8_t anwser_size = MAX_ANWSER_SIZE;
+        uint8_t anwser_size = MAX_PARAMETERS_COUNT;
         char **parameters;
         bool ack;
     } Pmtk_message;
