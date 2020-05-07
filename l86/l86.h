@@ -109,7 +109,7 @@ public:
         GALILEO_FULL,
         BEIDOU
     };
-    constexpr int SATELLITE_SYSTEMS_COUNT = 5;
+#define SATELLITE_SYSTEMS_COUNT 5
 
     /* Standby mode */
     enum class StandbyMode {
@@ -130,7 +130,7 @@ public:
         GSV,
         GLL
     };
-    constexpr int NMEA_COMMANDS_COUNT = 6;
+#define NMEA_COMMANDS_COUNT 6
 
     /* Frequencies supported */
     enum class NmeaFrequency {
