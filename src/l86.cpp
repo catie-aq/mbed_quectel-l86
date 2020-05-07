@@ -26,39 +26,39 @@ void L86::set_satellite_system(SatelliteSystems satellite_systems)
     message.packet_type[1] = '5';
     message.packet_type[2] = '3';
     message.is_command = false;
-    message.nb_param = 5;
+    message.nb_param = PARAMETERS_COUNT_SATELLITE_SYSTEM;
     message.parameters = (char **) malloc(sizeof(*message.parameters) * message.nb_param);
     for (int i = 0 ; i < message.nb_param ; i++) {
         *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
     }
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
-        message.parameters[0] = (char *)"1";
+        message.parameters[GPS_FLAG] = (char *)"1";
     } else {
-        message.parameters[0] = (char *)"0";
+        message.parameters[GPS_FLAG] = (char *)"0";
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GLONASS))) {
-        message.parameters[1] = (char *)"1";
+        message.parameters[GLONASS_FLAG] = (char *)"1";
     } else {
-        message.parameters[1] = (char *)"0";
+        message.parameters[GLONASS_FLAG] = (char *)"0";
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO))) {
-        message.parameters[2] = (char *)"1";
+        message.parameters[GALILEO_FLAG] = (char *)"1";
     } else {
-        message.parameters[2] = (char *)"0";
+        message.parameters[GALILEO_FLAG] = (char *)"0";
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO_FULL))) {
-        message.parameters[3] = (char *)"1";
+        message.parameters[GALILEO_FULL_FLAG] = (char *)"1";
     } else {
-        message.parameters[3] = (char *)"0";
+        message.parameters[GALILEO_FULL_FLAG] = (char *)"0";
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::BEIDOU))) {
-        message.parameters[4] = (char *)"1";
+        message.parameters[BEIDOU_FLAG] = (char *)"1";
     } else {
-        message.parameters[4] = (char *)"0";
+        message.parameters[BEIDOU_FLAG] = (char *)"0";
     }
 
     message.ack = true;
@@ -74,7 +74,7 @@ void L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency fr
     message.packet_type[1] = '1';
     message.packet_type[2] = '4';
     message.is_command = false;
-    message.nb_param = 19;
+    message.nb_param = PARAMETERS_COUNT_NMEA_OUTPUT_FREQUENCY;
 
     char c_frequency[10] = {0};
     switch (frequency) {
@@ -100,39 +100,39 @@ void L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency fr
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GLL))) {
-        message.parameters[0] = (char *)c_frequency;
+        message.parameters[GLL_FREQUENCY] = (char *)c_frequency;
     } else {
-        message.parameters[0] = (char *)"0";
+        message.parameters[GLL_FREQUENCY] = (char *)"0";
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::RMC))) {
-        message.parameters[1] = (char *)c_frequency;
+        message.parameters[RMC_FREQUENCY] = (char *)c_frequency;
     } else {
-        message.parameters[1] = (char *)"0";
+        message.parameters[RMC_FREQUENCY] = (char *)"0";
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::VTG))) {
-        message.parameters[2] = (char *)c_frequency;
+        message.parameters[VTG_FREQUENCY] = (char *)c_frequency;
     } else {
-        message.parameters[2] = (char *)"0";
+        message.parameters[VTG_FREQUENCY] = (char *)"0";
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GGA))) {
-        message.parameters[3] = (char *)c_frequency;
+        message.parameters[GGA_FREQUENCY] = (char *)c_frequency;
     } else {
-        message.parameters[3] = (char *)"0";
+        message.parameters[GGA_FREQUENCY] = (char *)"0";
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSA))) {
-        message.parameters[4] = (char *)c_frequency;
+        message.parameters[GSA_FREQUENCY] = (char *)c_frequency;
     } else {
-        message.parameters[4] = (char *)"0";
+        message.parameters[GSA_FREQUENCY] = (char *)"0";
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSV))) {
-        message.parameters[5] = (char *)c_frequency;
+        message.parameters[GSV_FREQUENCY] = (char *)c_frequency;
     } else {
-        message.parameters[5] = (char *)"0";
+        message.parameters[GSV_FREQUENCY] = (char *)"0";
     }
 
     for (uint8_t i = 6 ; i < message.nb_param ; i++) {
@@ -151,7 +151,7 @@ void L86::set_navigation_mode(NavigationMode navigation_mode)
     message.packet_type[1] = '8';
     message.packet_type[2] = '6';
     message.is_command = false;
-    message.nb_param = 1;
+    message.nb_param = PARAMETERS_COUNT_NAVIGATION_MODE;
 
     message.parameters = (char **) malloc(sizeof(*message.parameters) * message.nb_param);
     for (int i = 0 ; i < message.nb_param ; i++) {
@@ -160,19 +160,19 @@ void L86::set_navigation_mode(NavigationMode navigation_mode)
 
     switch (navigation_mode) {
         case NavigationMode::NORMAL_MODE:
-            message.parameters[0] = (char *)"0";
+            message.parameters[NAVIGATION_MODE] = (char *)"0";
             break;
 
         case NavigationMode::RUNNING_MODE:
-            message.parameters[0] = (char *)"1";
+            message.parameters[NAVIGATION_MODE] = (char *)"1";
             break;
 
         case NavigationMode::AVIATION_MODE:
-            message.parameters[0] = (char *)"2";
+            message.parameters[NAVIGATION_MODE] = (char *)"2";
             break;
 
         case NavigationMode::BALLOON_MODE:
-            message.parameters[0] = (char *)"3";
+            message.parameters[NAVIGATION_MODE] = (char *)"3";
             break;
     }
 
@@ -259,11 +259,11 @@ void L86::standby_mode(StandbyMode standby_mode)
     message.packet_type[1] = '2';
     message.packet_type[2] = '5';
     message.is_command = false;
-    message.nb_param = 1;
+    message.nb_param = PARAMETERS_COUNT_STANDBY_MODE;
     message.parameters = (char **) malloc(sizeof(*message.parameters) * message.nb_param);
     for (int i = 0 ; i < message.nb_param ; i++) {
         if (i != 0) {
-            *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 6);
+            *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * DEFAULT_PARAMETERS_COUNT_STANDBY_MODE);
         } else {
             *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
         }
@@ -271,22 +271,22 @@ void L86::standby_mode(StandbyMode standby_mode)
 
     switch (standby_mode) {
         case StandbyMode::NORMAL_MODE:
-            message.parameters[0] = (char *)"0";
+            message.parameters[STANDBY_MODE] = (char *)"0";
             break;
         case StandbyMode::PERIODIC_BACKUP_MODE:
-            message.parameters[0] = (char *)"1";
+            message.parameters[STANDBY_MODE] = (char *)"1";
             break;
         case StandbyMode::PERIODIC_STANDBY_MODE:
-            message.parameters[0] = (char *)"2";
+            message.parameters[STANDBY_MODE] = (char *)"2";
             break;
         case StandbyMode::PERPETUAL_BACKUP_MODE:
-            message.parameters[0] = (char *)"4";
+            message.parameters[STANDBY_MODE] = (char *)"4";
             break;
         case StandbyMode::AL_STANDBY_MODE:
-            message.parameters[0] = (char *)"8";
+            message.parameters[STANDBY_MODE] = (char *)"8";
             break;
         case StandbyMode::AL_BACKUP_MODE:
-            message.parameters[0] = (char *)"9";
+            message.parameters[STANDBY_MODE] = (char *)"9";
             break;
     }
 
@@ -379,8 +379,8 @@ int L86::registered_satellite_count()
 void L86::callback_rx(void)
 {
     static unsigned char index_car = 0;
-    static char answer[120];
-    char parameters[19][10] = {0};
+    static char answer[MAX_ANSWER_SIZE];
+    char parameters[MAX_PARAMETERS_COUNT][MAX_PARAMETER_SIZE] = {0};
     NmeaCommandType response_type;
 
     char cur_car = _uart->getc();
@@ -408,7 +408,7 @@ void L86::callback_rx(void)
             /* Parse arguments */
             int index_argument = 0;
             unsigned char i = 0;
-            for (int index = 7 ; answer[index] != '*' ; index++) {
+            for (int index = PARAMETERS_BEGIN ; answer[index] != '*' ; index++) {
                 if (answer[index] == ',') {
                     index_argument++;
                     i = 0;
@@ -419,19 +419,18 @@ void L86::callback_rx(void)
             }
 
             /* Update informations */
-
             set_parameter(parameters, response_type);
         } else if (answer[1] == 'P' && _waiting_ack == true) {     /* Trames PMTK */
-            if (answer[9] == _current_pmtk_command_code[0] && answer[10] == _current_pmtk_command_code[1] && answer[11] == _current_pmtk_command_code[2]) {
-                char flag = answer[12];
+            if (answer[PMTK_COMMAND_CODE_INDEX] == _current_pmtk_command_code[0] && answer[PMTK_COMMAND_CODE_INDEX + 1] == _current_pmtk_command_code[1] && answer[PMTK_COMMAND_CODE_INDEX + 2] == _current_pmtk_command_code[2]) {
+                char flag = answer[PMTK_COMMAND_RESULT];
                 _waiting_ack = false;
-                if (flag == '3') {
+                if (flag == VALID_PACKET_AND_COMMAND_SUCCEED) {
                     _pmtk_command_result = true;
                 }
             }
         }
-        memset(answer, 0, 120);
-        memset(parameters, 0, (size_t)(sizeof(parameters[0][0]) * 19 * 10));
+        memset(answer, 0, MAX_ANSWER_SIZE);
+        memset(parameters, 0, (size_t)(sizeof(parameters[0][0]) * MAX_PARAMETERS_COUNT * MAX_PARAMETER_SIZE));
         index_car = 0;
     }
 }
@@ -439,8 +438,8 @@ void L86::callback_rx(void)
 void L86::write_pmtk_message(Pmtk_message message)
 {
     /* PMTK frame setting up*/
-    char packet[100];
-    char packet_temp[100];
+    char packet[PMTK_PACKET_SIZE];
+    char packet_temp[PMTK_PACKET_SIZE];
     sprintf(packet, "$PMTK%c%c%c", message.packet_type[0], message.packet_type[1], message.packet_type[2]);
 
     for (int i = 0 ; i < message.nb_param ; i++) {
@@ -461,7 +460,7 @@ void L86::write_pmtk_message(Pmtk_message message)
         if (message.ack) {
             _waiting_ack = true;
             _pmtk_command_result = false;
-            char ack_message[50];
+            char ack_message[PMTK_ANSWER_SIZE];
             unsigned char index = 0;
             while (index < message.anwser_size) {
                 char received_character = _uart->getc();
@@ -470,10 +469,10 @@ void L86::write_pmtk_message(Pmtk_message message)
                     index++;
                 }
             }
-            if (ack_message[5] == '0' && ack_message[6] == '0' && ack_message[7] == '1') {  /* ack frame */
+            if (ack_message[PMTK_PACKET_TYPE_INDEX] == '0' && ack_message[PMTK_PACKET_TYPE_INDEX + 1] == '0' && ack_message[PMTK_PACKET_TYPE_INDEX + 2] == '1') { /* ack frame */
                 _waiting_ack = false;
-                if (ack_message[9] == message.packet_type[0] && ack_message[10] == message.packet_type[1] && ack_message[11] == message.packet_type[2]) { /* Good command ack */
-                    if (ack_message[13] == '3') { /* Command succeeds */
+                if (ack_message[PMTK_COMMAND_CODE_INDEX] == message.packet_type[0] && ack_message[PMTK_COMMAND_CODE_INDEX + 1] == message.packet_type[1] && ack_message[PMTK_COMMAND_CODE_INDEX + 2] == message.packet_type[2]) { /* Good command ack */
+                    if (ack_message[PMTK_COMMAND_RESULT] == VALID_PACKET_AND_COMMAND_SUCCEED) { /* Command succeeds */
                         _pmtk_command_result = true;
                     }
                 }
@@ -517,58 +516,58 @@ void L86::stop_receive()
 void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
 {
     bool flag = false;
-    int limit = 4;
+    int limit = LIMIT_SATELLITES;
     switch (command_type) {
         case NmeaCommandType::RMC:
-            set_positionning_mode(parameters[11][0]);
+            set_positionning_mode(parameters[RMC_POSITIONNING_MODE][0]);
             if (_global_informations.positionning_mode != PositionningMode::NO_FIX && _global_informations.positionning_mode != PositionningMode::UNKNOWN) {
-                set_date(parameters[8]);
-                set_time(parameters[0]);
+                set_date(parameters[RMC_DATE]);
+                set_time(parameters[RMC_TIME]);
 
-                set_latitude(parameters[2], parameters[3][0]);
-                set_longitude(parameters[4], parameters[5][0]);
-                _movement_informations.speed_knots = atof(parameters[6]);
+                set_latitude(parameters[RMC_LATITUDE], parameters[RMC_LATITUDE_N_S][0]);
+                set_longitude(parameters[RMC_LONGITUDE], parameters[RMC_LONGITUDE_E_W][0]);
+                _movement_informations.speed_knots = atof(parameters[RMC_SPEED_KNOTS]);
             }
             break;
 
         case NmeaCommandType::VTG:
-            set_positionning_mode(parameters[8][0]);
+            set_positionning_mode(parameters[VTG_POSITIONNING_MODE][0]);
             if (_global_informations.positionning_mode != PositionningMode::NO_FIX && _global_informations.positionning_mode != PositionningMode::UNKNOWN) {
-                _movement_informations.speed_knots = atof(parameters[4]);
-                _movement_informations.speed_kmh = atof(parameters[6]);
+                _movement_informations.speed_knots = atof(parameters[VTG_SPEED_KNOTS]);
+                _movement_informations.speed_kmh = atof(parameters[VTG_SPEED_KMH]);
             }
             break;
 
         case NmeaCommandType::GGA:
-            set_fix_status(parameters[5][0]);
+            set_fix_status(parameters[GGA_FIX_STATUS][0]);
             if (_global_informations.fix_status != FixStatusGGA::INVALID && _global_informations.fix_status != FixStatusGGA::UNKNOWN) {
-                set_time(parameters[0]);
-                set_latitude(parameters[1], parameters[2][0]);
-                set_longitude(parameters[3], parameters[4][0]);
-                _position_informations.altitude = atof(parameters[8]);
-                _satellites_informations.satellite_count = atoi(parameters[6]);
+                set_time(parameters[GGA_TIME]);
+                set_latitude(parameters[GGA_LATITUDE], parameters[GGA_LATITUDE_N_S][0]);
+                set_longitude(parameters[GGA_LONGITUDE], parameters[GGA_LONGITUDE_E_W][0]);
+                _position_informations.altitude = atof(parameters[GGA_ALTITUDE]);
+                _satellites_informations.satellite_count = atoi(parameters[GGA_SATELLITE_COUNT]);
             }
             break;
 
         case NmeaCommandType::GSA:
-            set_fix_satellite_status(parameters[1][0]);
+            set_fix_satellite_status(parameters[GSA_FIX_SATELLITE_STATUS][0]);
             if (_satellites_informations.status != FixStatusGSA::NOFIX && _satellites_informations.status != FixStatusGSA::UNKNOWN) {
-                set_mode(parameters[0][0]);
+                set_mode(parameters[GSA_MODE][0]);
 
-                _dilution_of_precision.horizontal = atof(parameters[15]);
-                _dilution_of_precision.positional = atof(parameters[14]);
-                _dilution_of_precision.vertical = atof(parameters[16]);
+                _dilution_of_precision.horizontal = atof(parameters[GSA_DILUTION_OF_PRECISION_HORIZONTAL]);
+                _dilution_of_precision.positional = atof(parameters[GSA_DILUTION_OF_PRECISION_POSITIONAL]);
+                _dilution_of_precision.vertical = atof(parameters[GSA_DILUTION_OF_PRECISION_VERTICAL]);
             }
 
             break;
 
         case NmeaCommandType::GSV:
             /* last sequence message */
-            if (strcmp(parameters[0], parameters[1]) == 0) {
-                limit = 12 - atoi(parameters[2]);
+            if (strcmp(parameters[GSV_MESSAGES_COUNT], parameters[GSV_SEQUENCE_NUMBER]) == 0) {
+                limit = MAX_SATELLITES - atoi(parameters[GSV_SATELLITES_COUNT]);
             }
             /* reset satellites if first sequence message */
-            if (atoi(parameters[1]) == 1) {
+            if (atoi(parameters[GSV_SEQUENCE_NUMBER]) == 1) {
                 _registered_satellite_count = 0;
             }
 
@@ -591,14 +590,14 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
                 _satellites_informations.satellites[i] = empty_sat;
             }
 
-            _satellites_informations.satellite_count = atoi(parameters[2]);
+            _satellites_informations.satellite_count = atoi(parameters[GSV_SATELLITES_COUNT]);
             break;
 
         case NmeaCommandType::GLL:
-            set_date(parameters[4]);
-            set_positionning_mode(parameters[4][0]);
-            set_latitude(parameters[0], parameters[1][0]);
-            set_longitude(parameters[2], parameters[3][0]);
+            set_time(parameters[GLL_TIME]);
+            set_positionning_mode(parameters[GLL_POSITIONNING_MODE][0]);
+            set_latitude(parameters[GLL_LATITUDE], parameters[GLL_LATITUDE_N_S][0]);
+            set_longitude(parameters[GLL_LONGITUDE], parameters[GLL_LONGITUDE][0]);
     }
 }
 
