@@ -1,5 +1,97 @@
 #include "l86.h"
 
+
+namespace {
+constexpr int PARAMETERS_COUNT_SATELLITE_SYSTEM = 5;        // Number of parameters to set satellite system
+constexpr char SATELLITE_SYSTEM_CODE[] = "353";             // Satellite system command code
+constexpr int GPS_FLAG = 0;                                 // GPS flag parameter index
+constexpr int GLONASS_FLAG = 1;                             // GLONASS flag parameter index
+constexpr int GALILEO_FLAG = 2;                             // GALILEO flag parameter index
+constexpr int GALILEO_FULL_FLAG = 3;                        // GALILEO FULL flag parameter index
+constexpr int BEIDOU_FLAG = 4;                              // BEIDOU flag parameter index
+
+constexpr int PARAMETERS_COUNT_NMEA_OUTPUT_FREQUENCY = 5;   // Number of parameters to set nmea ouput frequency
+constexpr char NMEA_OUTPUT_FREQUENCY_CODE[] = "314";        // Nmea output frequency command code
+constexpr int GLL_FREQUENCY = 0;                            // GLL frequency parameter index
+constexpr int RMC_FREQUENCY = 1;                            // RMC frequency parameter index
+constexpr int VTG_FREQUENCY = 2;                            // VTG frequency parameter index
+constexpr int GGA_FREQUENCY = 3;                            // GGA frequency parameter index
+constexpr int GSA_FREQUENCY = 4;                            // GSA frequency parameter index
+constexpr int GSV_FREQUENCY = 5;                            // GSV frequency parameter index
+
+constexpr int PARAMETERS_COUNT_NAVIGATION_MODE = 1;         // Number of parameters to set navigation mode
+constexpr char NAVIGATION_MODE_CODE[] = "886";              // Navigation mode command
+constexpr int NAVIGATION_MODE = 0;                          // Navigation mode parameter index
+
+constexpr int PARAMETERS_COUNT_POSITION_FIX_INTERVAL = 1;   // Number of parameters to set position fix interval
+constexpr char POSITION_FIX_INTERVAL_CODE[] = "220";        // Position fix interval command code
+constexpr int INTERVAL = 0;                                 // Position fix interval parameter index
+
+constexpr char FULL_COLD_START_MODE_CODE[] = "104";         // Full cold start mode command code
+constexpr char COLD_START_MODE_CODE[] = "103";              // Cold start mode command code
+constexpr char WARM_START_MODE_CODE[] = "102";              // Warm start mode command code
+constexpr char HOT_START_MODE_CODE[] = "101";               // Hot start mode command code
+
+constexpr int PARAMETERS_COUNT_STANDBY_MODE = 1;            // Number of parameters to set standby mode
+constexpr int STANDBY_MODE = 0;                             // Standby mode parameter index
+constexpr int DEFAULT_PARAMETERS_COUNT_STANDBY_MODE = 6;    // Number of default parameters which will allways initialized to 0
+
+constexpr int PARAMETERS_BEGIN = 7;                         // Parameters begin index in received messages
+constexpr int LIMIT_SATELLITES = 4;                         // Max number of satellites in a view
+constexpr int MAX_SATELLITES = 12;                          // Max number of satellites in a group of gsb message
+constexpr char ACK_CODE[] = "001";                          // Ack command code
+
+constexpr int PMTK_COMMAND_CODE_INDEX = 9;                  // Index of pmtk command code first character
+constexpr int PMTK_COMMAND_RESULT = 13;                     // Pmtk command result index
+constexpr int PMTK_PACKET_SIZE = 100;                       // Default packet size for pmtk command
+constexpr int PMTK_ANSWER_SIZE = 50;                        // Pmtk received message size
+constexpr int PMTK_PACKET_TYPE_INDEX = 5;                   // Pmtk received message command code index
+constexpr char INVALID_PACKET = '0';                        // Invalid packet code
+constexpr char UNSUPPORTED_PACKET_TYPE = '1';               // Unsupported packet code
+constexpr char VALID_PACKET_AND_ACTION_FAILED = '2';        // Valid packet but action failed code
+constexpr char VALID_PACKET_AND_COMMAND_SUCCEED = '3';      // Valid packet and command succed code
+
+constexpr int RMC_POSITIONNING_MODE = 11;                   // Positionning mode information index in RMC messages
+constexpr int RMC_DATE = 8;                                 // Date information index in RMC messages
+constexpr int RMC_TIME = 0;                                 // Time information index in RMC messages
+constexpr int RMC_LATITUDE = 2;                             // Latitude information index in RMC messages
+constexpr int RMC_LATITUDE_N_S = 3;                         // Latitude N/S information index in RMC messages
+constexpr int RMC_LONGITUDE = 4;                            // Longitude information index in RMC messages
+constexpr int RMC_LONGITUDE_E_W = 5;                        // Longitude E/W information index in RMC messages
+constexpr int RMC_SPEED_KNOTS = 6;                          // Speed in knots information index in RMC messages
+
+constexpr int VTG_POSITIONNING_MODE = 8;                    // Positionning mode information index in VTG messages
+constexpr int VTG_SPEED_KNOTS = 4;                          // Speed in knots information index in VTG messages
+constexpr int VTG_SPEED_KMH = 6;                            // Speed in km/h information index in VTG messages
+
+constexpr int GGA_FIX_STATUS = 5;                           // Fixed status information index in GGA messages
+constexpr int GGA_TIME = 0;                                 // Time information index in GGA messages
+constexpr int GGA_LATITUDE = 1;                             // Latitude information index in GGA messages
+constexpr int GGA_LATITUDE_N_S = 2;                         // Latitude N/S information index in GGA messages
+constexpr int GGA_LONGITUDE = 3;                            // Longitude information index in GGA messages
+constexpr int GGA_LONGITUDE_E_W = 4;                        // Longitude E/W information index in GGA messages
+constexpr int GGA_ALTITUDE = 8;                             // Altitude information index in GGA messages
+constexpr int GGA_SATELLITE_COUNT = 6;                      // Satellites count information index in GGA messages
+
+constexpr int GSA_FIX_SATELLITE_STATUS = 1;                 // Fixed satellite status information index in GSA messages
+constexpr int GSA_MODE = 0;                                 // Mode information index in GSA messages
+constexpr int GSA_DILUTION_OF_PRECISION_HORIZONTAL = 15;    // Horizontal dilution of precision information index in GSA messages
+constexpr int GSA_DILUTION_OF_PRECISION_POSITIONAL = 14;    // Positional dilution of precision information index in GSA messages
+constexpr int GSA_DILUTION_OF_PRECISION_VERTICAL = 15;      // Vertical dilution of precision information index in GSA messages
+
+constexpr int GSV_MESSAGES_COUNT = 0;                       // Messages count information index in GSV messages
+constexpr int GSV_SEQUENCE_NUMBER = 1;                      // Sequence number information index in GSV messages
+constexpr int GSV_SATELLITES_COUNT = 0;                     // Satellites count information index in GSV messages
+
+constexpr int GLL_TIME = 4;                                 // Time information index in GLL messages
+constexpr int GLL_POSITIONNING_MODE = 6;                    // Positionning mode information index in GLL messages
+constexpr int GLL_LATITUDE = 0;                             // Latitude information index in GLL messages
+constexpr int GLL_LATITUDE_N_S = 1;                         // Latitude N/S information index in GLL messages
+constexpr int GLL_LONGITUDE = 2;                            // Longitude information index in GLL messages
+constexpr int GLL_LONGITUDE_E_W = 3;                        // Longitude E/W information index in GLL messages
+}
+
+
 L86::L86(RawSerial *uart)
 {
     this->_waiting_ack = false;

@@ -17,100 +17,13 @@
 #define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KNOTS
 #endif
 
-
-
-constexpr int PARAMETERS_COUNT_SATELLITE_SYSTEM = 5;
-constexpr char SATELLITE_SYSTEM_CODE[] = "353";
-constexpr int GPS_FLAG = 0;
-constexpr int GLONASS_FLAG = 1;
-constexpr int GALILEO_FLAG = 2;
-constexpr int GALILEO_FULL_FLAG = 3;
-constexpr int BEIDOU_FLAG = 4;
-
-constexpr int PARAMETERS_COUNT_NMEA_OUTPUT_FREQUENCY = 5;
-constexpr char NMEA_OUTPUT_FREQUENCY_CODE[] = "314";
-constexpr int GLL_FREQUENCY = 0;
-constexpr int RMC_FREQUENCY = 1;
-constexpr int VTG_FREQUENCY = 2;
-constexpr int GGA_FREQUENCY = 3;
-constexpr int GSA_FREQUENCY = 4;
-constexpr int GSV_FREQUENCY = 5;
-
-constexpr int PARAMETERS_COUNT_NAVIGATION_MODE = 1;
-constexpr char NAVIGATION_MODE_CODE[] = "886";
-constexpr int NAVIGATION_MODE = 0;
-
-constexpr int PARAMETERS_COUNT_POSITION_FIX_INTERVAL = 1;
-constexpr char POSITION_FIX_INTERVAL_CODE[] = "220";
-constexpr int INTERVAL = 0;
-
-constexpr char FULL_COLD_START_MODE_CODE[] = "104";
-constexpr char COLD_START_MODE_CODE[] = "103";
-constexpr char WARM_START_MODE_CODE[] = "102";
-constexpr char HOT_START_MODE_CODE[] = "101";
-
-constexpr int PARAMETERS_COUNT_STANDBY_MODE = 1;
-constexpr int STANDBY_MODE = 0;
-constexpr int DEFAULT_PARAMETERS_COUNT_STANDBY_MODE = 6;
-
-constexpr int NB_MAX_SATELLITES = 20;
-constexpr int ID_PACKET_SIZE = 3;
-constexpr int MAX_ANSWER_SIZE = 120;
-constexpr int MAX_PARAMETERS_COUNT = 19;
-constexpr int MAX_PARAMETER_SIZE = 10;
-constexpr int PARAMETERS_BEGIN = 7;
-constexpr int LIMIT_SATELLITES = 4;
-constexpr int MAX_SATELLITES = 12;
-constexpr char ACK_CODE[] = "001";
-
-constexpr int PMTK_COMMAND_CODE_INDEX = 9;
-constexpr int PMTK_COMMAND_RESULT = 13;
-constexpr int PMTK_PACKET_SIZE = 100;
-constexpr int PMTK_ANSWER_SIZE = 50;
-constexpr int PMTK_PACKET_TYPE_INDEX = 5;
-constexpr char INVALID_PACKET = '0';
-constexpr char UNSUPPORTED_PACKET_TYPE = '1';
-constexpr char VALID_PACKET_AND_ACTION_FAILED = '2';
-constexpr char VALID_PACKET_AND_COMMAND_SUCCEED = '3';
-
-constexpr int RMC_POSITIONNING_MODE = 11;
-constexpr int RMC_DATE = 8;
-constexpr int RMC_TIME = 0;
-constexpr int RMC_LATITUDE = 2;
-constexpr int RMC_LATITUDE_N_S = 3;
-constexpr int RMC_LONGITUDE = 4;
-constexpr int RMC_LONGITUDE_E_W = 5;
-constexpr int RMC_SPEED_KNOTS = 6;
-
-constexpr int VTG_POSITIONNING_MODE = 8;
-constexpr int VTG_SPEED_KNOTS = 4;
-constexpr int VTG_SPEED_KMH = 6;
-
-constexpr int GGA_FIX_STATUS = 5;
-constexpr int GGA_TIME = 0;
-constexpr int GGA_LATITUDE = 1;
-constexpr int GGA_LATITUDE_N_S = 2;
-constexpr int GGA_LONGITUDE = 3;
-constexpr int GGA_LONGITUDE_E_W = 4;
-constexpr int GGA_ALTITUDE = 8;
-constexpr int GGA_SATELLITE_COUNT = 6;
-
-constexpr int GSA_FIX_SATELLITE_STATUS = 1;
-constexpr int GSA_MODE = 0;
-constexpr int GSA_DILUTION_OF_PRECISION_HORIZONTAL = 15;
-constexpr int GSA_DILUTION_OF_PRECISION_POSITIONAL = 14;
-constexpr int GSA_DILUTION_OF_PRECISION_VERTICAL = 15;
-
-constexpr int GSV_MESSAGES_COUNT = 0;
-constexpr int GSV_SEQUENCE_NUMBER = 1;
-constexpr int GSV_SATELLITES_COUNT = 0;
-
-constexpr int GLL_TIME = 4;
-constexpr int GLL_POSITIONNING_MODE = 6;
-constexpr int GLL_LATITUDE = 0;
-constexpr int GLL_LATITUDE_N_S = 1;
-constexpr int GLL_LONGITUDE = 2;
-constexpr int GLL_LONGITUDE_E_W = 3;
+namespace {
+constexpr int NB_MAX_SATELLITES = 20;       // Max number of satellites which are communating with L86 GNSS module
+constexpr int ID_PACKET_SIZE = 3;           // Command code size
+constexpr int MAX_ANSWER_SIZE = 120;        // Received anwser maximum size
+constexpr int MAX_PARAMETERS_COUNT = 19;    // Command parameters maximum number
+constexpr int MAX_PARAMETER_SIZE = 10;      // Command parameter maximum size
+}
 
 class L86
 {
