@@ -18,11 +18,11 @@
 #endif
 
 namespace {
-constexpr int NB_MAX_SATELLITES = 20;       // Max number of satellites which are communating with L86 GNSS module
-constexpr int ID_PACKET_SIZE = 3;           // Command code size
-constexpr int MAX_ANSWER_SIZE = 120;        // Received anwser maximum size
-constexpr int MAX_PARAMETERS_COUNT = 19;    // Command parameters maximum number
-constexpr int MAX_PARAMETER_SIZE = 10;      // Command parameter maximum size
+constexpr int NB_MAX_SATELLITES = 20;       //!< Max number of satellites which are communating with L86 GNSS module
+constexpr int ID_PACKET_SIZE = 3;           //!< Command code size
+constexpr int MAX_ANSWER_SIZE = 120;        //!< Received anwser maximum size
+constexpr int MAX_PARAMETERS_COUNT = 19;    //!< Command parameters maximum number
+constexpr int MAX_PARAMETER_SIZE = 10;      //!< Command parameter maximum size
 }
 
 class L86
