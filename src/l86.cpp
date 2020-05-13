@@ -419,7 +419,10 @@ void L86::callback_rx(void)
                 }
             }
 
-            if (!check_crc(answer, index)) {
+            if (!verify_checksum_int(answer, index)) {
+                memset(answer, 0, 120);
+                memset(parameters, 0, (size_t)(sizeof(parameters[0][0]) * 19 * 10));
+                index_car = 0;
                 return;
             }
             set_parameter(parameters, response_type);
@@ -711,7 +714,7 @@ void L86::set_latitude(char *latitude, char direction)
     }
 }
 
-bool L86::check_crc(char *message, int index)
+bool L86::verify_checksum_str(char *message, int index)
 {
     char received_checksum[2];
     char real_checksum[2];
@@ -719,3 +722,16 @@ bool L86::check_crc(char *message, int index)
     sprintf(real_checksum, "%X", calculate_checksum(message));
     return (strcmp(received_checksum, real_checksum) == 0);
 }
+
+bool L86::verify_checksum_int(char *message, int index)
+{
+    char received_checksum[2];
+    char *endptr;
+    sprintf(received_checksum, "%c%c", message[index + 1], message[index + 2]);
+    unsigned char checksum = (unsigned char)strtoul((char *)received_checksum, &endptr, 16);
+
+    unsigned char real_checksum =  calculate_checksum(message);
+    return real_checksum == checksum;
+}
+
+
