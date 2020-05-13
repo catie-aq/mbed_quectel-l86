@@ -313,7 +313,9 @@ private:
 
     void set_latitude(char *latitude, char indicator);
 
-    bool check_crc(char *message, int index);
+    bool verify_checksum_int(char *message, int index);
+
+    bool verify_checksum_str(char *message, int index);
 
 };
 
