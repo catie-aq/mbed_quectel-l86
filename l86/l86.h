@@ -23,12 +23,6 @@ class L86
 
 public:
 
-    constexpr static int NB_MAX_SATELLITES = 20;       //!< Max number of satellites which are communating with L86 GNSS module
-    constexpr static int ID_PACKET_SIZE = 3;           //!< Command code size
-    constexpr static int MAX_ANSWER_SIZE = 120;        //!< Received anwser maximum size
-    constexpr static int MAX_PARAMETERS_COUNT = 19;    //!< Command parameters maximum number
-    constexpr static int MAX_PARAMETER_SIZE = 10;      //!< Command parameter maximum size
-
     enum class PositionningMode {
         NO_FIX,
         AUTONOMOUS_GNSS_FIX,
@@ -81,6 +75,7 @@ public:
         FixStatusGGA fix_status;
     } Informations;
 
+    constexpr static int NB_MAX_SATELLITES = 20;       //!< Max number of satellites which are communating with L86 GNSS module
     typedef struct {
         int satellite_count;
         Mode mode;
@@ -239,6 +234,9 @@ public:
 
 private:
 
+    constexpr static int MAX_ANSWER_SIZE = 120;        //!< Received anwser maximum size
+    constexpr static int ID_PACKET_SIZE = 3;           //!< Command code size
+
     RawSerial *_uart;
     bool _waiting_ack;
     char _current_pmtk_command_code[ID_PACKET_SIZE];
@@ -251,6 +249,8 @@ private:
     Satellites_info _satellites_informations;
     DilutionOfPrecision _dilution_of_precision;
 
+
+    constexpr static int MAX_PARAMETERS_COUNT = 19;    //!< Command parameters maximum number
     typedef struct {
         char packet_type[ID_PACKET_SIZE];
         bool is_command;
@@ -294,6 +294,7 @@ private:
      */
     void stop_receive();
 
+    constexpr static int MAX_PARAMETER_SIZE = 10;      //!< Command parameter maximum size
     void set_parameter(char parameters[][MAX_PARAMETER_SIZE], NmeaCommandType command_type);
 
     void set_positionning_mode(char c_positionning_mode);
