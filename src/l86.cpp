@@ -51,6 +51,16 @@ constexpr char INVALID_PACKET = '0';                        //!< Invalid packet 
 constexpr char UNSUPPORTED_PACKET_TYPE = '1';               //!< Unsupported packet code
 constexpr char VALID_PACKET_AND_ACTION_FAILED = '2';        //!< Valid packet but action failed code
 constexpr char VALID_PACKET_AND_COMMAND_SUCCEED = '3';      //!< Valid packet and command succed code
+constexpr int CHECKSUM_LEN = 2;                             //!< Checksum length
+constexpr int CHECKSUM_RIGHT_SHIFT = 3;                     //!< Received message right shift to access to the checksum
+
+constexpr int HALF_BYTE_SHIFT = 4;                          //!< Shift to operate to acceed to the first half of a byte
+constexpr int ASCII_VALUE_1 = 48;                           //!< Ascii value for '1' caracter
+constexpr int ASCII_VALUE_9 = 57;                           //!< Ascii value for '9' caracter
+constexpr int ASCII_NUMBER_TO_INT_SHIFT = 48;               //!< Shift between Ascii number value and integer value
+constexpr int ASCII_VALUE_A = 65;                           //!< Ascii value for 'A' caracter
+constexpr int ASCII_VALUE_F = 70;                           //!< Ascii value for 'F' caracter
+constexpr int ASCII_LETTER_TO_INT_SHIFT = 55;               //!< Shift between Ascii letter value and integer value
 
 constexpr int RMC_POSITIONNING_MODE = 11;                   //!< Positionning mode information index in RMC messages
 constexpr int RMC_DATE = 8;                                 //!< Date information index in RMC messages
@@ -512,7 +522,7 @@ void L86::callback_rx(void)
                 }
             }
 
-            if (!verify_checksum_int(answer, index)) {
+            if (!verify_checksum(answer)) {
                 memset(answer, 0, 120);
                 memset(parameters, 0, (size_t)(sizeof(parameters[0][0]) * 19 * 10));
                 index_car = 0;
@@ -809,22 +819,30 @@ void L86::set_latitude(char *latitude, char direction)
     }
 }
 
-bool L86::verify_checksum_str(char *message, int index)
+bool L86::verify_checksum(char *message)
 {
-    char received_checksum[2];
-    char real_checksum[2];
-    sprintf(received_checksum, "%c%c", message[index + 1], message[index + 2]);
-    sprintf(real_checksum, "%X", calculate_checksum(message));
-    return (strcmp(received_checksum, real_checksum) == 0);
-}
+    uint8_t message_checksum = 0;
+    uint8_t checksum = 0;
+    uint8_t checksum_index = strlen(message) - CHECKSUM_LEN - CHECKSUM_RIGHT_SHIFT;
+    uint8_t checksum_index_counter = 1;
+    message_checksum = calculate_checksum(message);
 
-bool L86::verify_checksum_int(char *message, int index)
-{
-    char received_checksum[2];
-    char *endptr;
-    sprintf(received_checksum, "%c%c", message[index + 1], message[index + 2]);
-    unsigned char checksum = (unsigned char)strtoul((char *)received_checksum, &endptr, 16);
+    while (checksum_index_counter <= CHECKSUM_LEN) {
+        char carac = message[checksum_index + checksum_index_counter];
+        uint8_t right_shift = 0;
+        if (checksum_index_counter == 1) {
+            right_shift = HALF_BYTE_SHIFT;
+        }
 
-    unsigned char real_checksum =  calculate_checksum(message);
-    return real_checksum == checksum;
+        if (carac >= ASCII_VALUE_1 && carac <= ASCII_VALUE_9) {   // Characters between 0 and 9
+            checksum |= ((carac - ASCII_NUMBER_TO_INT_SHIFT) << right_shift);
+        } else if (carac >= ASCII_VALUE_A && carac <= ASCII_VALUE_F) { // Characters between A and F
+            checksum |= ((carac - ASCII_LETTER_TO_INT_SHIFT) << right_shift);
+        } else {
+            return false;
+        }
+        checksum_index_counter++;
+    }
+
+    return (message_checksum == checksum);
 }
