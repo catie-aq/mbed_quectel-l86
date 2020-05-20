@@ -17,6 +17,7 @@
 #define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KNOTS
 #endif
 
+
 class L86
 {
 
@@ -74,11 +75,12 @@ public:
         FixStatusGGA fix_status;
     } Informations;
 
+    constexpr static int NB_MAX_SATELLITES = 20;       //!< Max number of satellites which are communating with L86 GNSS module
     typedef struct {
         int satellite_count;
         Mode mode;
         FixStatusGSA status;
-        Satellite satellites[20];
+        Satellite satellites[NB_MAX_SATELLITES];
     } Satellites_info;
 
     typedef struct {
@@ -232,10 +234,13 @@ public:
 
 private:
 
+    constexpr static int MAX_ANSWER_SIZE = 120;        //!< Received anwser maximum size
+    constexpr static int ID_PACKET_SIZE = 3;           //!< Command code size
+
     RawSerial *_uart;
     bool _waiting_ack;
-    char _current_pmtk_command_code[3];
-    char _last_received_command[120];
+    char _current_pmtk_command_code[ID_PACKET_SIZE];
+    char _last_received_command[MAX_ANSWER_SIZE];
     bool _pmtk_command_result;
     int _registered_satellite_count;
     Position _position_informations;
@@ -244,11 +249,13 @@ private:
     Satellites_info _satellites_informations;
     DilutionOfPrecision _dilution_of_precision;
 
+
+    constexpr static int MAX_PARAMETERS_COUNT = 19;    //!< Command parameters maximum number
     typedef struct {
-        char packet_type[3];
+        char packet_type[ID_PACKET_SIZE];
         bool is_command;
         uint8_t nb_param;
-        uint8_t anwser_size = 19;
+        uint8_t anwser_size = MAX_PARAMETERS_COUNT;
         char **parameters;
         bool ack;
     } Pmtk_message;
@@ -287,7 +294,8 @@ private:
      */
     void stop_receive();
 
-    void set_parameter(char parameters[][10], NmeaCommandType command_type);
+    constexpr static int MAX_PARAMETER_SIZE = 10;      //!< Command parameter maximum size
+    void set_parameter(char parameters[][MAX_PARAMETER_SIZE], NmeaCommandType command_type);
 
     void set_positionning_mode(char c_positionning_mode);
 
