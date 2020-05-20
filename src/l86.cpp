@@ -518,8 +518,10 @@ void L86::callback_rx(void)
                 index_car = 0;
                 return;
             }
+
             /* Update informations */
             set_parameter(parameters, response_type);
+
         } else if (answer[1] == 'P' && _waiting_ack == true) {     /* Trames PMTK */
             if (answer[PMTK_COMMAND_CODE_INDEX] == _current_pmtk_command_code[0] && answer[PMTK_COMMAND_CODE_INDEX + 1] == _current_pmtk_command_code[1] && answer[PMTK_COMMAND_CODE_INDEX + 2] == _current_pmtk_command_code[2]) {
                 char flag = answer[PMTK_COMMAND_RESULT];
@@ -791,14 +793,6 @@ void L86::set_date(char *date)
     _global_informations.time.tm_year = 2000 + atoi(buffer) - 1900; /* basic calculs to get year */
 }
 
-void L86::set_latitude(char *latitude, char direction)
-{
-    _position_informations.latitude = atof(latitude);
-    if (direction == 'S') {
-        _position_informations.latitude *= -1;
-    }
-}
-
 void L86::set_longitude(char *longitude, char position)
 {
     _position_informations.longitude = atof(longitude);
@@ -807,6 +801,13 @@ void L86::set_longitude(char *longitude, char position)
     }
 }
 
+void L86::set_latitude(char *latitude, char direction)
+{
+    _position_informations.latitude = atof(latitude);
+    if (direction == 'S') {
+        _position_informations.latitude *= -1;
+    }
+}
 
 bool L86::verify_checksum_str(char *message, int index)
 {
