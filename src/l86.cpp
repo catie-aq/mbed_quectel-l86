@@ -470,15 +470,6 @@ int L86::registered_satellite_count()
     return _registered_satellite_count;
 }
 
-void L86::pmtk_callback_rx(void)
-{
-    char buf[1] = {0};
-    if (_uart->readable()) {
-        _uart->read(buf, 1);
-    }
-    printf("%c", buf[0]);
-}
-
 void L86::callback_rx(void)
 {
     static unsigned char index_car = 0;
@@ -537,6 +528,7 @@ void L86::write_pmtk_message(Pmtk_message message)
     char packet[PMTK_PACKET_SIZE];
     char packet_temp[PMTK_PACKET_SIZE];
     char buf[100] = {0};
+    char received_character[1];
     sprintf(packet, "$PMTK%c%c%c", message.packet_type[0], message.packet_type[1], message.packet_type[2]);
 
     for (int i = 0 ; i < message.nb_param ; i++) {
@@ -559,7 +551,7 @@ void L86::write_pmtk_message(Pmtk_message message)
             _pmtk_command_result = false;
             char ack_message[PMTK_ANSWER_SIZE];
             unsigned char index = 0;
-            char received_character[1] = {0};
+            received_character[0] = 0;
             while (received_character[0] != '\n') {
                 _uart->read(received_character, 1);
                 if ((received_character[0] == '$' && index == 0) || (received_character[0] != '$' && index != 0)) {
@@ -603,13 +595,6 @@ unsigned char L86::calculate_checksum(char *message)
 void L86::start_receive()
 {
     _uart->attach(callback(this, &L86::callback_rx), SerialBase::RxIrq);
-    //_uart->attach(callback(this, &L86::callback_rx)); // @suppress("Invalid arguments")
-    //_uart->sigio(callback(this, &L86::callback_rx));
-}
-
-void L86::start_receive_pmtk()
-{
-    _uart->sigio(callback(this, &L86::pmtk_callback_rx));
 }
 
 void L86::stop_receive()

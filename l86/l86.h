@@ -262,8 +262,6 @@ private:
         bool ack;
     } Pmtk_message;
 
-    void pmtk_callback_rx(void);
-
     /*!
      *  Callback triggered when a caracter is received by UART
      *
@@ -285,8 +283,6 @@ private:
      *
      */
     unsigned char calculate_checksum(char *message);
-
-    void start_receive_pmtk();
 
     /*!
      *  Start receiving message from L86 module
