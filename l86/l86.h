@@ -2,6 +2,7 @@
 #define CATIE_SIXTRON_L86_H_
 
 #include "mbed.h"
+#include "UnbufferedSerial.h"
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -159,7 +160,7 @@ public:
     *
     *  \param uart
     */
-    L86(RawSerial *uart);
+    L86(UnbufferedSerial *uart);
 
     /*!
      *  Select a satellite system
@@ -237,8 +238,9 @@ private:
     constexpr static int MAX_ANSWER_SIZE = 120;        //!< Received anwser maximum size
     constexpr static int ID_PACKET_SIZE = 3;           //!< Command code size
 
-    RawSerial *_uart;
+    UnbufferedSerial *_uart;
     bool _waiting_ack;
+    bool _flag;
     char _current_pmtk_command_code[ID_PACKET_SIZE];
     char _last_received_command[MAX_ANSWER_SIZE];
     bool _pmtk_command_result;
@@ -260,6 +262,7 @@ private:
         bool ack;
     } Pmtk_message;
 
+    void pmtk_callback_rx(void);
 
     /*!
      *  Callback triggered when a caracter is received by UART
@@ -282,6 +285,8 @@ private:
      *
      */
     unsigned char calculate_checksum(char *message);
+
+    void start_receive_pmtk();
 
     /*!
      *  Start receiving message from L86 module
