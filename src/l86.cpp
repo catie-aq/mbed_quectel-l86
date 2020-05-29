@@ -52,14 +52,14 @@ constexpr char UNSUPPORTED_PACKET_TYPE = '1';               //!< Unsupported pac
 constexpr char VALID_PACKET_AND_ACTION_FAILED = '2';        //!< Valid packet but action failed code
 constexpr char VALID_PACKET_AND_COMMAND_SUCCEED = '3';      //!< Valid packet and command succed code
 constexpr int CHECKSUM_LEN = 2;                             //!< Checksum length
-constexpr int CHECKSUM_RIGHT_SHIFT = 3;                     //!< Received message right shift to access to the checksum
+constexpr int FRAME_END_LEN = 3;                            //!< Received message right shift to access to the checksum
 
 constexpr int HALF_BYTE_SHIFT = 4;                          //!< Shift to operate to acceed to the first half of a byte
-constexpr int ASCII_VALUE_1 = 48;                           //!< Ascii value for '1' caracter
-constexpr int ASCII_VALUE_9 = 57;                           //!< Ascii value for '9' caracter
+constexpr int ASCII_VALUE_1 = 48;                           //!< Ascii value for '1' character
+constexpr int ASCII_VALUE_9 = 57;                           //!< Ascii value for '9' character
 constexpr int ASCII_NUMBER_TO_INT_SHIFT = 48;               //!< Shift between Ascii number value and integer value
-constexpr int ASCII_VALUE_A = 65;                           //!< Ascii value for 'A' caracter
-constexpr int ASCII_VALUE_F = 70;                           //!< Ascii value for 'F' caracter
+constexpr int ASCII_VALUE_A = 65;                           //!< Ascii value for 'A' character
+constexpr int ASCII_VALUE_F = 70;                           //!< Ascii value for 'F' character
 constexpr int ASCII_LETTER_TO_INT_SHIFT = 55;               //!< Shift between Ascii letter value and integer value
 
 constexpr int RMC_POSITIONNING_MODE = 11;                   //!< Positionning mode information index in RMC messages
@@ -564,7 +564,7 @@ void L86::write_pmtk_message(Pmtk_message message)
     unsigned char checksum = 0;
     checksum = this->calculate_checksum(packet_temp);
 
-    sprintf(packet, "%s%X\r\n", packet_temp, checksum);
+    sprintf(packet, "%s%02X\r\n", packet_temp, checksum);
 
     /* Send packet until received ack and get confirmation that command succeeds */
     do {
@@ -601,17 +601,15 @@ unsigned char L86::calculate_checksum(char *message)
 {
     unsigned char sum = 0;
     bool is_message = false;
-    unsigned char i = 0;
-
-    while (message[i] != '*') {
-        if (is_message) {
-            sum ^= message[i];
-        }
-        if (message[i] == '$') {
+    uint8_t message_len = strlen(message);
+    for (int index = 0 ; message[index] != '*' && index < message_len - 1  ; index++) {
+        if (!is_message && message[index] == '$') {
             is_message = true;
+        } else if (is_message) {
+            sum ^= message[index];
         }
-        i++;
     }
+
     return sum;
 }
 
@@ -821,28 +819,23 @@ void L86::set_latitude(char *latitude, char direction)
 
 bool L86::verify_checksum(char *message)
 {
-    uint8_t message_checksum = 0;
     uint8_t checksum = 0;
-    uint8_t checksum_index = strlen(message) - CHECKSUM_LEN - CHECKSUM_RIGHT_SHIFT;
-    uint8_t checksum_index_counter = 1;
-    message_checksum = calculate_checksum(message);
+    uint8_t checksum_initial_index = strlen(message) - FRAME_END_LEN  - CHECKSUM_LEN;
 
-    while (checksum_index_counter <= CHECKSUM_LEN) {
-        char carac = message[checksum_index + checksum_index_counter];
+    /* Convert ascii checksum contained in the received message to an integer checksum */
+    for (int checksum_index = 1 ; checksum_index <= CHECKSUM_LEN ; checksum_index++) {
+        char checksum_character = message[checksum_initial_index + checksum_index];
         uint8_t right_shift = 0;
-        if (checksum_index_counter == 1) {
+        if (checksum_index == 1) {
             right_shift = HALF_BYTE_SHIFT;
         }
-
-        if (carac >= ASCII_VALUE_1 && carac <= ASCII_VALUE_9) {   // Characters between 0 and 9
-            checksum |= ((carac - ASCII_NUMBER_TO_INT_SHIFT) << right_shift);
-        } else if (carac >= ASCII_VALUE_A && carac <= ASCII_VALUE_F) { // Characters between A and F
-            checksum |= ((carac - ASCII_LETTER_TO_INT_SHIFT) << right_shift);
+        if (checksum_character >= ASCII_VALUE_1 && checksum_character <= ASCII_VALUE_9) {   // Characters between 0 and 9
+            checksum |= ((checksum_character - ASCII_NUMBER_TO_INT_SHIFT) << right_shift);
+        } else if (checksum_character >= ASCII_VALUE_A && checksum_character <= ASCII_VALUE_F) { // Characters between A and F
+            checksum |= ((checksum_character - ASCII_LETTER_TO_INT_SHIFT) << right_shift);
         } else {
             return false;
         }
-        checksum_index_counter++;
     }
-
-    return (message_checksum == checksum);
+    return (checksum == calculate_checksum(message));
 }
