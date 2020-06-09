@@ -54,14 +54,6 @@ constexpr char VALID_PACKET_AND_COMMAND_SUCCEED = '3';      //!< Valid packet an
 constexpr int CHECKSUM_LEN = 2;                             //!< Checksum length
 constexpr int FRAME_END_LEN = 3;                            //!< Received message right shift to access to the checksum
 
-constexpr int HALF_BYTE_SHIFT = 4;                          //!< Shift to operate to acceed to the first half of a byte
-constexpr int ASCII_VALUE_1 = 48;                           //!< Ascii value for '1' character
-constexpr int ASCII_VALUE_9 = 57;                           //!< Ascii value for '9' character
-constexpr int ASCII_NUMBER_TO_INT_SHIFT = 48;               //!< Shift between Ascii number value and integer value
-constexpr int ASCII_VALUE_A = 65;                           //!< Ascii value for 'A' character
-constexpr int ASCII_VALUE_F = 70;                           //!< Ascii value for 'F' character
-constexpr int ASCII_LETTER_TO_INT_SHIFT = 55;               //!< Shift between Ascii letter value and integer value
-
 constexpr int RMC_POSITIONNING_MODE = 11;                   //!< Positionning mode information index in RMC messages
 constexpr int RMC_DATE = 8;                                 //!< Date information index in RMC messages
 constexpr int RMC_TIME = 0;                                 //!< Time information index in RMC messages
