@@ -102,7 +102,6 @@ L86::L86(UnbufferedSerial *uart)
     this->_pmtk_command_result = false;
     _registered_satellite_count = 0;
     _uart = uart;
-    _flag = false;
 
     _position_informations.altitude = 0.0;
     _position_informations.latitude = 0.0;
@@ -527,8 +526,6 @@ void L86::write_pmtk_message(Pmtk_message message)
     /* PMTK frame setting up*/
     char packet[PMTK_PACKET_SIZE];
     char packet_temp[PMTK_PACKET_SIZE];
-    char buf[100] = {0};
-    char received_character[1];
     sprintf(packet, "$PMTK%c%c%c", message.packet_type[0], message.packet_type[1], message.packet_type[2]);
 
     for (int i = 0 ; i < message.nb_param ; i++) {
@@ -551,11 +548,11 @@ void L86::write_pmtk_message(Pmtk_message message)
             _pmtk_command_result = false;
             char ack_message[PMTK_ANSWER_SIZE];
             unsigned char index = 0;
-            received_character[0] = 0;
-            while (received_character[0] != '\n') {
-                _uart->read(received_character, 1);
-                if ((received_character[0] == '$' && index == 0) || (received_character[0] != '$' && index != 0)) {
-                    ack_message[index] = received_character[0];
+            char received_character = 0;
+            while (received_character != '\n') {
+                _uart->read(&received_character, 1);
+                if ((received_character == '$' && index == 0) || (received_character != '$' && index != 0)) {
+                    ack_message[index] = received_character;
                     index++;
                 }
             }

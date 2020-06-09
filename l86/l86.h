@@ -240,7 +240,6 @@ private:
 
     UnbufferedSerial *_uart;
     bool _waiting_ack;
-    bool _flag;
     char _current_pmtk_command_code[ID_PACKET_SIZE];
     char _last_received_command[MAX_ANSWER_SIZE];
     bool _pmtk_command_result;
