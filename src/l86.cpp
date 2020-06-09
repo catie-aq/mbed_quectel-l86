@@ -819,23 +819,7 @@ void L86::set_latitude(char *latitude, char direction)
 
 bool L86::verify_checksum(char *message)
 {
-    uint8_t checksum = 0;
-    uint8_t checksum_initial_index = strlen(message) - FRAME_END_LEN  - CHECKSUM_LEN;
-
-    /* Convert ascii checksum contained in the received message to an integer checksum */
-    for (int checksum_index = 1 ; checksum_index <= CHECKSUM_LEN ; checksum_index++) {
-        char checksum_character = message[checksum_initial_index + checksum_index];
-        uint8_t right_shift = 0;
-        if (checksum_index == 1) {
-            right_shift = HALF_BYTE_SHIFT;
-        }
-        if (checksum_character >= ASCII_VALUE_1 && checksum_character <= ASCII_VALUE_9) {   // Characters between 0 and 9
-            checksum |= ((checksum_character - ASCII_NUMBER_TO_INT_SHIFT) << right_shift);
-        } else if (checksum_character >= ASCII_VALUE_A && checksum_character <= ASCII_VALUE_F) { // Characters between A and F
-            checksum |= ((checksum_character - ASCII_LETTER_TO_INT_SHIFT) << right_shift);
-        } else {
-            return false;
-        }
-    }
+    uint8_t checksum_initial_index = strlen(message) - FRAME_END_LEN - CHECKSUM_LEN;
+    uint8_t checksum = (uint8_t)strtol(&message[checksum_initial_index + 1], NULL, 16);
     return (checksum == calculate_checksum(message));
 }
