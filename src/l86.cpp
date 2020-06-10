@@ -93,7 +93,7 @@ constexpr int GLL_LONGITUDE_E_W = 3;                        //!< Longitude E/W i
 }
 
 
-L86::L86(RawSerial *uart)
+L86::L86(UnbufferedSerial *uart)
 {
     this->_waiting_ack = false;
     this->_current_pmtk_command_code[0] = 0;
@@ -109,6 +109,7 @@ L86::L86(RawSerial *uart)
 
     _movement_informations.speed_kmh = 0.0;
     _movement_informations.speed_knots = 0.0;
+    _uart->sync();
 }
 
 void L86::set_satellite_system(SatelliteSystems satellite_systems)
@@ -474,12 +475,13 @@ void L86::callback_rx(void)
     static char answer[MAX_ANSWER_SIZE];
     char parameters[MAX_PARAMETERS_COUNT][MAX_PARAMETER_SIZE] = {0};
     NmeaCommandType response_type;
-
-    char cur_car = _uart->getc();
+    char cur_car;
+    _uart->read(&cur_car, 1);
     if ((index_car == 0 && cur_car == '$') || (index_car != 0 && cur_car != '$')) {
         answer[index_car] = cur_car;
         index_car++;
     }
+
     if (answer[index_car - 1] == '\n') { /* Complete received */
         strcpy((char *)_last_received_command, (char *)answer);
         if (answer[1] == 'G') {                  /* Trames NMEA */
@@ -512,14 +514,6 @@ void L86::callback_rx(void)
 
             /* Update informations */
             set_parameter(parameters, response_type);
-        } else if (answer[1] == 'P' && _waiting_ack == true) {     /* Trames PMTK */
-            if (answer[PMTK_COMMAND_CODE_INDEX] == _current_pmtk_command_code[0] && answer[PMTK_COMMAND_CODE_INDEX + 1] == _current_pmtk_command_code[1] && answer[PMTK_COMMAND_CODE_INDEX + 2] == _current_pmtk_command_code[2]) {
-                char flag = answer[PMTK_COMMAND_RESULT];
-                _waiting_ack = false;
-                if (flag == VALID_PACKET_AND_COMMAND_SUCCEED) {
-                    _pmtk_command_result = true;
-                }
-            }
         }
         memset(answer, 0, MAX_ANSWER_SIZE);
         memset(parameters, 0, (size_t)(sizeof(parameters[0][0]) * MAX_PARAMETERS_COUNT * MAX_PARAMETER_SIZE));
@@ -548,14 +542,15 @@ void L86::write_pmtk_message(Pmtk_message message)
 
     /* Send packet until received ack and get confirmation that command succeeds */
     do {
-        _uart->write((uint8_t *)packet, strlen(packet), NULL);
+        _uart->write((uint8_t *)packet, strlen(packet));
         if (message.ack) {
             _waiting_ack = true;
             _pmtk_command_result = false;
             char ack_message[PMTK_ANSWER_SIZE];
             unsigned char index = 0;
-            while (index < message.anwser_size) {
-                char received_character = _uart->getc();
+            char received_character = 0;
+            while (received_character != '\n') {
+                _uart->read(&received_character, 1);
                 if ((received_character == '$' && index == 0) || (received_character != '$' && index != 0)) {
                     ack_message[index] = received_character;
                     index++;
@@ -573,7 +568,6 @@ void L86::write_pmtk_message(Pmtk_message message)
             this->_waiting_ack = false;
             this->_pmtk_command_result = true;
         }
-        ThisThread::sleep_for(200);
     } while (_waiting_ack or !_pmtk_command_result);
 }
 
@@ -597,12 +591,12 @@ unsigned char L86::calculate_checksum(char *message)
 
 void L86::start_receive()
 {
-    this->_uart->attach(callback(this, &L86::callback_rx), RawSerial::RxIrq);
+    _uart->attach(callback(this, &L86::callback_rx), SerialBase::RxIrq);
 }
 
 void L86::stop_receive()
 {
-    this->_uart->attach(NULL);
+    _uart->attach(NULL);
 }
 
 void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
