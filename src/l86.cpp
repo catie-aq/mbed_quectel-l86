@@ -501,10 +501,9 @@ void L86::callback_rx(void)
 
             /* Parse arguments */
             int index_argument = 0;
-            int index = 0;
             unsigned char i = 0;
 
-            for (index = PARAMETERS_BEGIN ; answer[index] != '*' ; index++) {
+            for (int index = PARAMETERS_BEGIN ; answer[index] != '*' ; index++) {
                 if (answer[index] == ',') {
                     index_argument++;
                     i = 0;
