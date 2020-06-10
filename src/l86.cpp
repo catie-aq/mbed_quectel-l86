@@ -811,6 +811,6 @@ void L86::set_latitude(char *latitude, char direction)
 bool L86::verify_checksum(char *message)
 {
     uint8_t checksum_initial_index = strlen(message) - FRAME_END_LEN - CHECKSUM_LEN;
-    uint8_t checksum = (uint8_t)strtol(&message[checksum_initial_index + 1], NULL, 16);
+    uint8_t checksum = uint8_t{strtol(&message[checksum_initial_index + 1], NULL, 16)};
     return (checksum == calculate_checksum(message));
 }
