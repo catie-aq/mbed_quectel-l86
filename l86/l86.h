@@ -313,6 +313,8 @@ private:
 
     void set_latitude(char *latitude, char indicator);
 
+    bool verify_checksum(char *message);
+
 };
 
 #endif /* CATIE_SIXTRON_L86_H_ */

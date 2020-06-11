@@ -51,6 +51,8 @@ constexpr char INVALID_PACKET = '0';                        //!< Invalid packet 
 constexpr char UNSUPPORTED_PACKET_TYPE = '1';               //!< Unsupported packet code
 constexpr char VALID_PACKET_AND_ACTION_FAILED = '2';        //!< Valid packet but action failed code
 constexpr char VALID_PACKET_AND_COMMAND_SUCCEED = '3';      //!< Valid packet and command succed code
+constexpr int CHECKSUM_LEN = 2;                             //!< Checksum length
+constexpr int FRAME_END_LEN = 3;                            //!< Received message right shift to access to the checksum
 
 constexpr int RMC_POSITIONNING_MODE = 11;                   //!< Positionning mode information index in RMC messages
 constexpr int RMC_DATE = 8;                                 //!< Date information index in RMC messages
@@ -502,6 +504,7 @@ void L86::callback_rx(void)
             /* Parse arguments */
             int index_argument = 0;
             unsigned char i = 0;
+
             for (int index = PARAMETERS_BEGIN ; answer[index] != '*' ; index++) {
                 if (answer[index] == ',') {
                     index_argument++;
@@ -510,6 +513,13 @@ void L86::callback_rx(void)
                     parameters[index_argument][i] = answer[index];
                     i++;
                 }
+            }
+
+            if (!verify_checksum(answer)) {
+                memset(answer, 0, 120);
+                memset(parameters, 0, (size_t)(sizeof(parameters[0][0]) * 19 * 10));
+                index_car = 0;
+                return;
             }
 
             /* Update informations */
@@ -538,7 +548,7 @@ void L86::write_pmtk_message(Pmtk_message message)
     unsigned char checksum = 0;
     checksum = this->calculate_checksum(packet_temp);
 
-    sprintf(packet, "%s%X\r\n", packet_temp, checksum);
+    sprintf(packet, "%s%02X\r\n", packet_temp, checksum);
 
     /* Send packet until received ack and get confirmation that command succeeds */
     do {
@@ -575,17 +585,15 @@ unsigned char L86::calculate_checksum(char *message)
 {
     unsigned char sum = 0;
     bool is_message = false;
-    unsigned char i = 0;
-
-    while (message[i] != '*') {
-        if (is_message) {
-            sum ^= message[i];
-        }
-        if (message[i] == '$') {
+    uint8_t message_len = strlen(message);
+    for (int index = 0 ; message[index] != '*' && index < message_len - 1  ; index++) {
+        if (!is_message && message[index] == '$') {
             is_message = true;
+        } else if (is_message) {
+            sum ^= message[index];
         }
-        i++;
     }
+
     return sum;
 }
 
@@ -777,14 +785,6 @@ void L86::set_date(char *date)
     _global_informations.time.tm_year = 2000 + atoi(buffer) - 1900; /* basic calculs to get year */
 }
 
-void L86::set_latitude(char *latitude, char direction)
-{
-    _position_informations.latitude = atof(latitude);
-    if (direction == 'S') {
-        _position_informations.latitude *= -1;
-    }
-}
-
 void L86::set_longitude(char *longitude, char position)
 {
     _position_informations.longitude = atof(longitude);
@@ -793,4 +793,17 @@ void L86::set_longitude(char *longitude, char position)
     }
 }
 
+void L86::set_latitude(char *latitude, char direction)
+{
+    _position_informations.latitude = atof(latitude);
+    if (direction == 'S') {
+        _position_informations.latitude *= -1;
+    }
+}
 
+bool L86::verify_checksum(char *message)
+{
+    uint8_t checksum_initial_index = strlen(message) - FRAME_END_LEN - CHECKSUM_LEN;
+    uint8_t checksum = uint8_t{strtol(&message[checksum_initial_index + 1], NULL, 16)};
+    return (checksum == calculate_checksum(message));
+}
