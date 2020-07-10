@@ -160,7 +160,7 @@ public:
     *
     *  \param uart
     */
-    L86(UnbufferedSerial *uart);
+    L86(BufferedSerial *uart);
 
     /*!
      *  Select a satellite system
@@ -233,23 +233,23 @@ public:
 
     int registered_satellite_count();
 
+
 private:
 
-    constexpr static int MAX_ANSWER_SIZE = 120;        //!< Received anwser maximum size
+    constexpr static int MAX_MESSAGE_SIZE = 200;        //!< Maximum received message size
     constexpr static int ID_PACKET_SIZE = 3;           //!< Command code size
 
-    UnbufferedSerial *_uart;
+    BufferedSerial *_uart;
     bool _waiting_ack;
     char _current_pmtk_command_code[ID_PACKET_SIZE];
-    char _last_received_command[MAX_ANSWER_SIZE];
     bool _pmtk_command_result;
     int _registered_satellite_count;
+    char received_command[MAX_MESSAGE_SIZE];
     Position _position_informations;
     Movement _movement_informations;
     Informations _global_informations;
     Satellites_info _satellites_informations;
     DilutionOfPrecision _dilution_of_precision;
-
 
     constexpr static int MAX_PARAMETERS_COUNT = 19;    //!< Command parameters maximum number
     typedef struct {
@@ -260,12 +260,6 @@ private:
         char **parameters;
         bool ack;
     } Pmtk_message;
-
-    /*!
-     *  Callback triggered when a caracter is received by UART
-     *
-     */
-    void callback_rx(void);
 
     /*!
      *  Write a PMTK message which permit to configure the L86 module
@@ -293,6 +287,13 @@ private:
      *  Stop receiving message from L86 module
      */
     void stop_receive();
+
+    /*!
+     *  Callback called when the receiver buffer state changes
+     *  Add received character to the received command buffer
+     *  And parse the received message when it's completed
+     */
+    void analyze_receiving();
 
     constexpr static int MAX_PARAMETER_SIZE = 10;      //!< Command parameter maximum size
     void set_parameter(char parameters[][MAX_PARAMETER_SIZE], NmeaCommandType command_type);
