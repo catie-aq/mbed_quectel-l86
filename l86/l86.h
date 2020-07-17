@@ -290,7 +290,7 @@ private:
 
     /*!
      *  Callback called when the BufferedSerial RX file state changes
-     *  Add received character to the received command buffer
+     *  Add received character to the received message buffer
      *  And parse the received message when it's completed
      */
     void analyze_receiving();
