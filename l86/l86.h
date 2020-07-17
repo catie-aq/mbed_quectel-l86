@@ -293,7 +293,7 @@ private:
      *  Add received character to the received message buffer
      *  And parse the received message when it's completed
      */
-    void analyze_receiving();
+    void get_received_message();
 
     constexpr static int MAX_PARAMETER_SIZE = 10;      //!< Command parameter maximum size
     void set_parameter(char parameters[][MAX_PARAMETER_SIZE], NmeaCommandType command_type);
