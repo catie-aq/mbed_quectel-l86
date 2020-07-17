@@ -515,7 +515,7 @@ unsigned char L86::calculate_checksum(char *message)
 
 void L86::analyze_receiving()
 {
-    static int index_message = 0;
+    static int message_len = 0;
     while (_uart->readable()) {
         _uart->read(&received_command[index_message++], 1);
         if (received_command[index_message - 1] == '\n') {
