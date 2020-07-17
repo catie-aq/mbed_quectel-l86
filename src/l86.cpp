@@ -519,7 +519,9 @@ void L86::analyze_receiving()
     while (_uart->readable()) {
         _uart->read(&received_command[index_message++], 1);
         if (received_command[index_message - 1] == '\n') {
-            // Received message's parsing
+            // Completed message received
+            received_message[message_len] = '\0';
+            // TODO Parse received message
             printf("Receive %s\n", received_command);
             index_message = 0;
             memset(received_command, 0, MAX_MESSAGE_SIZE);
