@@ -289,7 +289,7 @@ private:
     void stop_receive();
 
     /*!
-     *  Callback called when the receiver buffer state changes
+     *  Callback called when the BufferedSerial RX file state changes
      *  Add received character to the received command buffer
      *  And parse the received message when it's completed
      */
