@@ -244,7 +244,7 @@ private:
     char _current_pmtk_command_code[ID_PACKET_SIZE];
     bool _pmtk_command_result;
     int _registered_satellite_count;
-    char received_command[MAX_MESSAGE_SIZE];
+    char _received_message[MAX_MESSAGE_SIZE];
     Position _position_informations;
     Movement _movement_informations;
     Informations _global_informations;

@@ -513,18 +513,20 @@ unsigned char L86::calculate_checksum(char *message)
     return sum;
 }
 
-void L86::analyze_receiving()
+void L86::get_received_message()
 {
     static int message_len = 0;
     while (_uart->readable()) {
-        _uart->read(&received_command[index_message++], 1);
-        if (received_command[index_message - 1] == '\n') {
+        if (message_len >= MAX_MESSAGE_SIZE) {
+            message_len = 0;
+        }
+        _uart->read(&_received_message[message_len++], 1);
+        if (_received_message[message_len - 1] == '\n') {
             // Completed message received
-            received_message[message_len] = '\0';
+            _received_message[message_len] = '\0';
             // TODO Parse received message
-            printf("Receive %s\n", received_command);
-            index_message = 0;
-            memset(received_command, 0, MAX_MESSAGE_SIZE);
+            printf("Receive %s\n", _received_message);
+            message_len = 0;
         }
     }
 }
@@ -532,7 +534,7 @@ void L86::analyze_receiving()
 
 void L86::start_receive()
 {
-    _uart->sigio(mbed_event_queue()->event(callback(this, &L86::analyze_receiving)));
+    _uart->sigio(mbed_event_queue()->event(callback(this, &L86::get_received_message)));
 }
 
 void L86::stop_receive()
