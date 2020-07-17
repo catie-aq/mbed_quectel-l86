@@ -517,7 +517,7 @@ void L86::get_received_message()
 {
     static int message_len = 0;
     while (_uart->readable()) {
-        if (message_len >= MAX_MESSAGE_SIZE) {
+        if (message_len >= MAX_MESSAGE_SIZE - 1) {
             message_len = 0;
         }
         _uart->read(&_received_message[message_len++], 1);
