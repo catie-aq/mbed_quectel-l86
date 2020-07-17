@@ -513,23 +513,24 @@ unsigned char L86::calculate_checksum(char *message)
     return sum;
 }
 
-void L86::analyze_receiving() {
-	static int index_message = 0;
-	while(_uart->readable()) {
-		_uart->read(&received_command[index_message++], 1);
-		if(received_command[index_message-1] == '\n'){
-			// Received message's parsing
-			printf("Receive %s\n", received_command);
-			index_message = 0;
-			memset(received_command, 0, MAX_MESSAGE_SIZE);
-		}
-	}
+void L86::analyze_receiving()
+{
+    static int index_message = 0;
+    while (_uart->readable()) {
+        _uart->read(&received_command[index_message++], 1);
+        if (received_command[index_message - 1] == '\n') {
+            // Received message's parsing
+            printf("Receive %s\n", received_command);
+            index_message = 0;
+            memset(received_command, 0, MAX_MESSAGE_SIZE);
+        }
+    }
 }
 
 
 void L86::start_receive()
 {
-	_uart->sigio(mbed_event_queue()->event(callback(this, &L86::analyze_receiving)));
+    _uart->sigio(mbed_event_queue()->event(callback(this, &L86::analyze_receiving)));
 }
 
 void L86::stop_receive()
