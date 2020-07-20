@@ -92,10 +92,11 @@ constexpr int GLL_LATITUDE = 0;                             //!< Latitude inform
 constexpr int GLL_LATITUDE_N_S = 1;                         //!< Latitude N/S information index in GLL messages
 constexpr int GLL_LONGITUDE = 2;                            //!< Longitude information index in GLL messages
 constexpr int GLL_LONGITUDE_E_W = 3;                        //!< Longitude E/W information index in GLL messages
+
 }
 
 
-L86::L86(UnbufferedSerial *uart)
+L86::L86(BufferedSerial *uart)
 {
     this->_waiting_ack = false;
     this->_current_pmtk_command_code[0] = 0;
@@ -111,8 +112,10 @@ L86::L86(UnbufferedSerial *uart)
 
     _movement_informations.speed_kmh = 0.0;
     _movement_informations.speed_knots = 0.0;
-    _uart->sync();
+    start_receive();
 }
+
+
 
 void L86::set_satellite_system(SatelliteSystems satellite_systems)
 {
@@ -343,7 +346,7 @@ void L86::start(StartMode start_mode)
     message.ack = false;
 
     this->write_pmtk_message(message);
-    this->start_receive();
+
 }
 
 void L86::standby_mode(StandbyMode standby_mode)
@@ -471,66 +474,6 @@ int L86::registered_satellite_count()
     return _registered_satellite_count;
 }
 
-void L86::callback_rx(void)
-{
-    static unsigned char index_car = 0;
-    static char answer[MAX_ANSWER_SIZE];
-    char parameters[MAX_PARAMETERS_COUNT][MAX_PARAMETER_SIZE] = {0};
-    NmeaCommandType response_type;
-    char cur_car;
-    _uart->read(&cur_car, 1);
-    if ((index_car == 0 && cur_car == '$') || (index_car != 0 && cur_car != '$')) {
-        answer[index_car] = cur_car;
-        index_car++;
-    }
-
-    if (answer[index_car - 1] == '\n') { /* Complete received */
-        strcpy((char *)_last_received_command, (char *)answer);
-        if (answer[1] == 'G') {                  /* Trames NMEA */
-            if (answer[3] == 'R') {                                  /* RMC */
-                response_type = NmeaCommandType::RMC;
-            } else if (answer[3] == 'V') {                           /* VTG */
-                response_type = NmeaCommandType::VTG;
-            } else if (answer[3] == 'G' && answer[4] == 'G') { /* GGA */
-                response_type = NmeaCommandType::GGA;
-            } else if (answer[3] == 'G' && answer[5] == 'A') { /* GSA */
-                response_type = NmeaCommandType::GSA;
-            } else if (answer[3] == 'G' && answer[5] == 'V') { /* GSV */
-                response_type = NmeaCommandType::GSV;
-            } else if (answer[3] == 'G' && answer[5] == 'L') {  /* GLL */
-                response_type = NmeaCommandType::GLL;
-            }
-
-            /* Parse arguments */
-            int index_argument = 0;
-            unsigned char i = 0;
-
-            for (int index = PARAMETERS_BEGIN ; answer[index] != '*' ; index++) {
-                if (answer[index] == ',') {
-                    index_argument++;
-                    i = 0;
-                } else {
-                    parameters[index_argument][i] = answer[index];
-                    i++;
-                }
-            }
-
-            if (!verify_checksum(answer)) {
-                memset(answer, 0, 120);
-                memset(parameters, 0, (size_t)(sizeof(parameters[0][0]) * 19 * 10));
-                index_car = 0;
-                return;
-            }
-
-            /* Update informations */
-            set_parameter(parameters, response_type);
-        }
-        memset(answer, 0, MAX_ANSWER_SIZE);
-        memset(parameters, 0, (size_t)(sizeof(parameters[0][0]) * MAX_PARAMETERS_COUNT * MAX_PARAMETER_SIZE));
-        index_car = 0;
-    }
-}
-
 void L86::write_pmtk_message(Pmtk_message message)
 {
     /* PMTK frame setting up*/
@@ -550,35 +493,8 @@ void L86::write_pmtk_message(Pmtk_message message)
 
     sprintf(packet, "%s%02X\r\n", packet_temp, checksum);
 
-    /* Send packet until received ack and get confirmation that command succeeds */
-    do {
-        _uart->write((uint8_t *)packet, strlen(packet));
-        if (message.ack) {
-            _waiting_ack = true;
-            _pmtk_command_result = false;
-            char ack_message[PMTK_ANSWER_SIZE];
-            unsigned char index = 0;
-            char received_character = 0;
-            while (received_character != '\n') {
-                _uart->read(&received_character, 1);
-                if ((received_character == '$' && index == 0) || (received_character != '$' && index != 0)) {
-                    ack_message[index] = received_character;
-                    index++;
-                }
-            }
-            if (ack_message[PMTK_PACKET_TYPE_INDEX] == ACK_CODE[0] && ack_message[PMTK_PACKET_TYPE_INDEX + 1] == ACK_CODE[1] && ack_message[PMTK_PACKET_TYPE_INDEX + 2] == ACK_CODE[2]) { /* ack frame */
-                _waiting_ack = false;
-                if (ack_message[PMTK_COMMAND_CODE_INDEX] == message.packet_type[0] && ack_message[PMTK_COMMAND_CODE_INDEX + 1] == message.packet_type[1] && ack_message[PMTK_COMMAND_CODE_INDEX + 2] == message.packet_type[2]) { /* Good command ack */
-                    if (ack_message[PMTK_COMMAND_RESULT] == VALID_PACKET_AND_COMMAND_SUCCEED) { /* Command succeeds */
-                        _pmtk_command_result = true;
-                    }
-                }
-            }
-        } else {
-            this->_waiting_ack = false;
-            this->_pmtk_command_result = true;
-        }
-    } while (_waiting_ack or !_pmtk_command_result);
+    _uart->write((uint8_t *)packet, strlen(packet));
+    ThisThread::sleep_for(50);
 }
 
 unsigned char L86::calculate_checksum(char *message)
@@ -597,14 +513,33 @@ unsigned char L86::calculate_checksum(char *message)
     return sum;
 }
 
+void L86::get_received_message()
+{
+    static int message_len = 0;
+    while (_uart->readable()) {
+        if (message_len >= MAX_MESSAGE_SIZE - 1) {
+            message_len = 0;
+        }
+        _uart->read(&_received_message[message_len++], 1);
+        if (_received_message[message_len - 1] == '\n') {
+            // Completed message received
+            _received_message[message_len] = '\0';
+            // TODO Parse received message
+            printf("Receive %s\n", _received_message);
+            message_len = 0;
+        }
+    }
+}
+
+
 void L86::start_receive()
 {
-    _uart->attach(callback(this, &L86::callback_rx), SerialBase::RxIrq);
+    _uart->sigio(mbed_event_queue()->event(callback(this, &L86::get_received_message)));
 }
 
 void L86::stop_receive()
 {
-    _uart->attach(NULL);
+    _uart->sigio(NULL);
 }
 
 void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
@@ -647,7 +582,6 @@ void L86::set_parameter(char parameters[][10], NmeaCommandType command_type)
             set_fix_satellite_status(parameters[GSA_FIX_SATELLITE_STATUS][0]);
             if (_satellites_informations.status != FixStatusGSA::NOFIX && _satellites_informations.status != FixStatusGSA::UNKNOWN) {
                 set_mode(parameters[GSA_MODE][0]);
-
                 _dilution_of_precision.horizontal = atof(parameters[GSA_DILUTION_OF_PRECISION_HORIZONTAL]);
                 _dilution_of_precision.positional = atof(parameters[GSA_DILUTION_OF_PRECISION_POSITIONAL]);
                 _dilution_of_precision.vertical = atof(parameters[GSA_DILUTION_OF_PRECISION_VERTICAL]);
