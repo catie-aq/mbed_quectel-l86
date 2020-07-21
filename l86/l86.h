@@ -3,6 +3,7 @@
 
 #include "mbed.h"
 #include "UnbufferedSerial.h"
+#include "minmea.h"
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -60,14 +61,16 @@ public:
     } Satellite;
 
     typedef struct {
-        double latitude;
-        double altitude;
-        double longitude;
+        float latitude;
+        float altitude;
+        float longitude;
+        float magnetic_variation;
     } Position;
 
     typedef struct {
-        double speed_kmh;
-        double speed_knots;
+        float speed_kmh;
+        float speed_knots;
+        float course_over_ground;
     } Movement;
 
     typedef struct {
@@ -76,18 +79,18 @@ public:
         FixStatusGGA fix_status;
     } Informations;
 
-    constexpr static int NB_MAX_SATELLITES = 20;       //!< Max number of satellites which are communating with L86 GNSS module
+    constexpr static int MAX_SATELLITES = 12;    //!< Max number of satellites which are communating with L86 GNSS module
     typedef struct {
         int satellite_count;
         Mode mode;
         FixStatusGSA status;
-        Satellite satellites[NB_MAX_SATELLITES];
+        Satellite satellites[MAX_SATELLITES];
     } Satellites_info;
 
     typedef struct {
-        double positional;
-        double horizontal;
-        double vertical;
+        float positional;
+        float horizontal;
+        float vertical;
     } DilutionOfPrecision;
 
     /* Start mode*/
@@ -295,26 +298,26 @@ private:
      */
     void get_received_message();
 
-    constexpr static int MAX_PARAMETER_SIZE = 10;      //!< Command parameter maximum size
-    void set_parameter(char parameters[][MAX_PARAMETER_SIZE], NmeaCommandType command_type);
-
     void set_positionning_mode(char c_positionning_mode);
 
-    void set_fix_status(char c_fix_status);
+    void set_fix_status(int c_fix_status);
 
-    void set_fix_satellite_status(char c_fix_satellite_status);
+    void set_fix_satellite_status(int c_fix_satellite_status);
 
     void set_mode(char c_mode);
 
-    void set_time(char *time);
+    void set_time(minmea_time time);
 
-    void set_date(char *date);
+    void set_date(minmea_date date);
 
-    void set_longitude(char *longitude, char indicator);
+    void set_longitude(minmea_float longitude);
 
-    void set_latitude(char *latitude, char indicator);
+    void set_latitude(minmea_float latitude);
 
     bool verify_checksum(char *message);
+
+    void parse_message(char *message);
+
 
 };
 
