@@ -170,7 +170,7 @@ public:
      *
      *  \param satellite_system (GPS, GLONASS, GALILEO, BEIDOU)
      */
-    void set_satellite_system(SatelliteSystems satellite_system);
+    bool set_satellite_system(SatelliteSystems satellite_system);
 
     /*!
      *  Select NMEA output frequencies
@@ -178,35 +178,35 @@ public:
      *  \param nmea_trame (RMC, VTG, GGA, GSA, GSV, GLL)
      *  \param frequency
      */
-    void set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency);
+    bool set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency);
 
     /*!
      *  Select navigation mode
      *
      *  \param navigation_mode (normal, running, aviation, balloon)
      */
-    void set_navigation_mode(NavigationMode navigation_mode);
+    bool set_navigation_mode(NavigationMode navigation_mode);
 
     /*!
      *  Set position fix interval
      *
      *  \param interval
      */
-    void set_position_fix_interval(uint16_t interval);
+    bool set_position_fix_interval(uint16_t interval);
 
     /*!
      *  Start the L86 module in the specified mode
      *
      *  \param start_mode (full cold, cold, warm, hot)
      */
-    void start(StartMode start_mode);
+    bool start(StartMode start_mode);
 
     /*!
      *  Put the module in periodic standby mode
      *
      *  \param standby_mode (normal, periodic backup, periodic standby, periodic backup, AlwaysLocate standby, AlwaysLocate backup)
      */
-    void standby_mode(StandbyMode standby_mode);
+    bool standby_mode(StandbyMode standby_mode);
 
     Satellite *satellites();
 
@@ -239,13 +239,8 @@ public:
 
 private:
 
-    constexpr static int MAX_MESSAGE_SIZE = 200;        //!< Maximum received message size
-    constexpr static int ID_PACKET_SIZE = 3;           //!< Command code size
-
     BufferedSerial *_uart;
-    bool _waiting_ack;
-    char _current_pmtk_command_code[ID_PACKET_SIZE];
-    bool _pmtk_command_result;
+    Pmtk_message _current_pmtk_message;
     int _registered_satellite_count;
     char _received_message[MAX_MESSAGE_SIZE];
     Position _position_informations;
@@ -254,23 +249,14 @@ private:
     Satellites_info _satellites_informations;
     DilutionOfPrecision _dilution_of_precision;
 
-    constexpr static int MAX_PARAMETERS_COUNT = 19;    //!< Command parameters maximum number
-    typedef struct {
-        char packet_type[ID_PACKET_SIZE];
-        bool is_command;
-        uint8_t nb_param;
-        uint8_t anwser_size = MAX_PARAMETERS_COUNT;
-        char **parameters;
-        bool ack;
-    } Pmtk_message;
-
     /*!
-     *  Write a PMTK message which permit to configure the L86 module
+     *  Generate PMTK message and send it through serial communication
      *
      *  \param message : PMTK message object which contains all necessary informations to send to the L86 module
      *
+     *  \return true if pmtk message action is succesfully executed on the module else return false
      */
-    void write_pmtk_message(Pmtk_message message);
+    bool generate_and_send_pmtk_message(Pmtk_message message);
 
     /*!
      *  Calculate the message checksum

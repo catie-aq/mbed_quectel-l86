@@ -23,7 +23,21 @@ extern "C" {
 #include <minmea_compat.h>
 #endif
 
+
+#define MAX_MESSAGE_SIZE 200       //!< Maximum received message size
+#define ID_PACKET_SIZE 3           //!< Command code size
+#define PMTK_PACKET_SIZE 100       //!< Maximal Pmtk packet length
+#define MAX_PARAMETERS_COUNT 19    //!< Command parameters maximum number
 #define MINMEA_MAX_LENGTH 80
+
+typedef struct {
+    char _type[ID_PACKET_SIZE];
+    bool _ack_expected;
+    bool _ack_received;
+    uint8_t _parameters_count;
+    char **_parameters;
+    bool _result;
+} Pmtk_message;
 
 enum minmea_sentence_id {
     MINMEA_INVALID = -1,
@@ -36,7 +50,7 @@ enum minmea_sentence_id {
     MINMEA_SENTENCE_GSV,
     MINMEA_SENTENCE_VTG,
     MINMEA_SENTENCE_ZDA,
-	MINMEA_SENTENCE_PMTK_ACK
+    MINMEA_SENTENCE_PMTK_ACK
 };
 
 struct minmea_float {
@@ -58,15 +72,15 @@ struct minmea_time {
 };
 
 enum minmea_pmtk_ack_config_status {
-	MINMEA_PMTK_ACK_CONFIG_STATUS_INVALID = '0',
-	MINMEA_PMTK_ACK_CONFIG_STATUS_UNSUPPORTED = '1',
-	MINMEA_PMTK_ACK_CONFIG_STATUS_FAILED = '2',
-	MINMEA_PMTK_ACK_CONFIG_STATUS_SUCCES = '3',
+    MINMEA_PMTK_ACK_CONFIG_STATUS_INVALID = '0',
+    MINMEA_PMTK_ACK_CONFIG_STATUS_UNSUPPORTED = '1',
+    MINMEA_PMTK_ACK_CONFIG_STATUS_FAILED = '2',
+    MINMEA_PMTK_ACK_CONFIG_STATUS_SUCCESS = '3',
 };
 
 struct minmea_sentence_pmtk_ack {
-	char command[4];
-	char status;
+    char command[4];
+    char status;
 };
 
 struct minmea_sentence_rmc {
@@ -87,8 +101,10 @@ struct minmea_sentence_gga {
     int fix_quality;
     int satellites_tracked;
     struct minmea_float hdop;
-    struct minmea_float altitude; char altitude_units;
-    struct minmea_float height; char height_units;
+    struct minmea_float altitude;
+    char altitude_units;
+    struct minmea_float height;
+    char height_units;
     struct minmea_float dgps_age;
 };
 
@@ -223,6 +239,11 @@ bool minmea_parse_vtg(struct minmea_sentence_vtg *frame, const char *sentence);
 bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence);
 
 /**
+ * Serialize PMTK message from a Pmtk_message structure
+ */
+void serialize_pmtk_message(Pmtk_message pmtk, char *message);
+
+/**
  * Convert GPS UTC date/time representation to a UNIX timestamp.
  */
 int minmea_gettime(struct timespec *ts, const struct minmea_date *date, const struct minmea_time *time_);
@@ -232,14 +253,17 @@ int minmea_gettime(struct timespec *ts, const struct minmea_date *date, const st
  */
 static inline int_least32_t minmea_rescale(struct minmea_float *f, int_least32_t new_scale)
 {
-    if (f->scale == 0)
+    if (f->scale == 0) {
         return 0;
-    if (f->scale == new_scale)
+    }
+    if (f->scale == new_scale) {
         return f->value;
-    if (f->scale > new_scale)
-        return (f->value + ((f->value > 0) - (f->value < 0)) * f->scale/new_scale/2) / (f->scale/new_scale);
-    else
-        return f->value * (new_scale/f->scale);
+    }
+    if (f->scale > new_scale) {
+        return (f->value + ((f->value > 0) - (f->value < 0)) * f->scale / new_scale / 2) / (f->scale / new_scale);
+    } else {
+        return f->value * (new_scale / f->scale);
+    }
 }
 
 /**
@@ -248,8 +272,9 @@ static inline int_least32_t minmea_rescale(struct minmea_float *f, int_least32_t
  */
 static inline float minmea_tofloat(struct minmea_float *f)
 {
-    if (f->scale == 0)
+    if (f->scale == 0) {
         return NAN;
+    }
     return (float) f->value / (float) f->scale;
 }
 
@@ -259,8 +284,9 @@ static inline float minmea_tofloat(struct minmea_float *f)
  */
 static inline float minmea_tocoord(struct minmea_float *f)
 {
-    if (f->scale == 0)
+    if (f->scale == 0) {
         return NAN;
+    }
     int_least32_t degrees = f->value / (f->scale * 100);
     int_least32_t minutes = f->value % (f->scale * 100);
     return (float) degrees + (float) minutes / (60 * f->scale);
