@@ -113,46 +113,46 @@ L86::L86(BufferedSerial *uart)
 bool L86::set_satellite_system(SatelliteSystems satellite_systems)
 {
     Pmtk_message message;
-    message._type[0] = SATELLITE_SYSTEM_CODE[0];
-    message._type[1] = SATELLITE_SYSTEM_CODE[1];
-    message._type[2] = SATELLITE_SYSTEM_CODE[2];
-    message._parameters_count = PARAMETERS_COUNT_SATELLITE_SYSTEM;
-    message._parameters = (char **) malloc(sizeof(*message._parameters) * message._parameters_count);
-    for (int i = 0 ; i < message._parameters_count ; i++) {
-        *(message._parameters + i) = (char *) malloc(sizeof(**message._parameters) * 1);
+    message.type[0] = SATELLITE_SYSTEM_CODE[0];
+    message.type[1] = SATELLITE_SYSTEM_CODE[1];
+    message.type[2] = SATELLITE_SYSTEM_CODE[2];
+    message.parameters_count = PARAMETERS_COUNT_SATELLITE_SYSTEM;
+    message.parameters = (char **) malloc(sizeof(*message.parameters) * message.parameters_count);
+    for (int i = 0 ; i < message.parameters_count ; i++) {
+        *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
     }
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
-        message._parameters[GPS_FLAG] = (char *)"1";
+        message.parameters[GPS_FLAG] = (char *)"1";
     } else {
-        message._parameters[GPS_FLAG] = (char *)"0";
+        message.parameters[GPS_FLAG] = (char *)"0";
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GLONASS))) {
-        message._parameters[GLONASS_FLAG] = (char *)"1";
+        message.parameters[GLONASS_FLAG] = (char *)"1";
     } else {
-        message._parameters[GLONASS_FLAG] = (char *)"0";
+        message.parameters[GLONASS_FLAG] = (char *)"0";
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO))) {
-        message._parameters[GALILEO_FLAG] = (char *)"1";
+        message.parameters[GALILEO_FLAG] = (char *)"1";
     } else {
-        message._parameters[GALILEO_FLAG] = (char *)"0";
+        message.parameters[GALILEO_FLAG] = (char *)"0";
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO_FULL))) {
-        message._parameters[GALILEO_FULL_FLAG] = (char *)"1";
+        message.parameters[GALILEO_FULL_FLAG] = (char *)"1";
     } else {
-        message._parameters[GALILEO_FULL_FLAG] = (char *)"0";
+        message.parameters[GALILEO_FULL_FLAG] = (char *)"0";
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::BEIDOU))) {
-        message._parameters[BEIDOU_FLAG] = (char *)"1";
+        message.parameters[BEIDOU_FLAG] = (char *)"1";
     } else {
-        message._parameters[BEIDOU_FLAG] = (char *)"0";
+        message.parameters[BEIDOU_FLAG] = (char *)"0";
     }
-    message._result = false;
-    message._ack_received = false;
-    message._ack_expected = true;
+    message.result = false;
+    message.ack_received = false;
+    message.ack_expected = true;
     return generate_and_send_pmtk_message(message);
 }
 
@@ -161,10 +161,10 @@ bool L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency fr
 {
     Pmtk_message message;
 
-    message._type[0] = NMEA_OUTPUT_FREQUENCY_CODE[0];
-    message._type[1] = NMEA_OUTPUT_FREQUENCY_CODE[1];
-    message._type[2] = NMEA_OUTPUT_FREQUENCY_CODE[2];
-    message._parameters_count = PARAMETERS_COUNT_NMEA_OUTPUT_FREQUENCY;
+    message.type[0] = NMEA_OUTPUT_FREQUENCY_CODE[0];
+    message.type[1] = NMEA_OUTPUT_FREQUENCY_CODE[1];
+    message.type[2] = NMEA_OUTPUT_FREQUENCY_CODE[2];
+    message.parameters_count = PARAMETERS_COUNT_NMEA_OUTPUT_FREQUENCY;
 
     char c_frequency[10] = {0};
     switch (frequency) {
@@ -184,54 +184,54 @@ bool L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency fr
             c_frequency[0] = '5';
             break;
     }
-    message._parameters = (char **) malloc(sizeof(*message._parameters) * message._parameters_count);
-    for (int i = 0 ; i < message._parameters_count ; i++) {
-        *(message._parameters + i) = (char *) malloc(sizeof(**message._parameters) * 1);
+    message.parameters = (char **) malloc(sizeof(*message.parameters) * message.parameters_count);
+    for (int i = 0 ; i < message.parameters_count ; i++) {
+        *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GLL))) {
-        message._parameters[GLL_FREQUENCY] = (char *)c_frequency;
+        message.parameters[GLL_FREQUENCY] = (char *)c_frequency;
     } else {
-        message._parameters[GLL_FREQUENCY] = (char *)"0";
+        message.parameters[GLL_FREQUENCY] = (char *)"0";
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::RMC))) {
-        message._parameters[RMC_FREQUENCY] = (char *)c_frequency;
+        message.parameters[RMC_FREQUENCY] = (char *)c_frequency;
     } else {
-        message._parameters[RMC_FREQUENCY] = (char *)"0";
+        message.parameters[RMC_FREQUENCY] = (char *)"0";
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::VTG))) {
-        message._parameters[VTG_FREQUENCY] = (char *)c_frequency;
+        message.parameters[VTG_FREQUENCY] = (char *)c_frequency;
     } else {
-        message._parameters[VTG_FREQUENCY] = (char *)"0";
+        message.parameters[VTG_FREQUENCY] = (char *)"0";
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GGA))) {
-        message._parameters[GGA_FREQUENCY] = (char *)c_frequency;
+        message.parameters[GGA_FREQUENCY] = (char *)c_frequency;
     } else {
-        message._parameters[GGA_FREQUENCY] = (char *)"0";
+        message.parameters[GGA_FREQUENCY] = (char *)"0";
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSA))) {
-        message._parameters[GSA_FREQUENCY] = (char *)c_frequency;
+        message.parameters[GSA_FREQUENCY] = (char *)c_frequency;
     } else {
-        message._parameters[GSA_FREQUENCY] = (char *)"0";
+        message.parameters[GSA_FREQUENCY] = (char *)"0";
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSV))) {
-        message._parameters[GSV_FREQUENCY] = (char *)c_frequency;
+        message.parameters[GSV_FREQUENCY] = (char *)c_frequency;
     } else {
-        message._parameters[GSV_FREQUENCY] = (char *)"0";
+        message.parameters[GSV_FREQUENCY] = (char *)"0";
     }
 
-    for (uint8_t i = 6 ; i < message._parameters_count ; i++) {
-        message._parameters[i] = (char *)"0";
+    for (uint8_t i = 6 ; i < message.parameters_count ; i++) {
+        message.parameters[i] = (char *)"0";
     }
 
-    message._result = false;
-    message._ack_received = false;
-    message._ack_expected = true;
+    message.result = false;
+    message.ack_received = false;
+    message.ack_expected = true;
     return generate_and_send_pmtk_message(message);
 }
 
@@ -239,47 +239,47 @@ bool L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency fr
 bool L86::set_navigation_mode(NavigationMode navigation_mode)
 {
     Pmtk_message message;
-    message._type[0] = NAVIGATION_MODE_CODE[0];
-    message._type[1] = NAVIGATION_MODE_CODE[1];
-    message._type[2] = NAVIGATION_MODE_CODE[2];
-    message._parameters_count = PARAMETERS_COUNT_NAVIGATION_MODE;
+    message.type[0] = NAVIGATION_MODE_CODE[0];
+    message.type[1] = NAVIGATION_MODE_CODE[1];
+    message.type[2] = NAVIGATION_MODE_CODE[2];
+    message.parameters_count = PARAMETERS_COUNT_NAVIGATION_MODE;
 
-    message._parameters = (char **) malloc(sizeof(*message._parameters) * message._parameters_count);
-    for (int i = 0 ; i < message._parameters_count ; i++) {
-        *(message._parameters + i) = (char *) malloc(sizeof(**message._parameters) * 1);
+    message.parameters = (char **) malloc(sizeof(*message.parameters) * message.parameters_count);
+    for (int i = 0 ; i < message.parameters_count ; i++) {
+        *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
     }
 
     switch (navigation_mode) {
         case NavigationMode::NORMAL_MODE:
-            message._parameters[NAVIGATION_MODE] = (char *)"0";
+            message.parameters[NAVIGATION_MODE] = (char *)"0";
             break;
 
         case NavigationMode::RUNNING_MODE:
-            message._parameters[NAVIGATION_MODE] = (char *)"1";
+            message.parameters[NAVIGATION_MODE] = (char *)"1";
             break;
 
         case NavigationMode::AVIATION_MODE:
-            message._parameters[NAVIGATION_MODE] = (char *)"2";
+            message.parameters[NAVIGATION_MODE] = (char *)"2";
             break;
 
         case NavigationMode::BALLOON_MODE:
-            message._parameters[NAVIGATION_MODE] = (char *)"3";
+            message.parameters[NAVIGATION_MODE] = (char *)"3";
             break;
     }
 
-    message._result = false;
-    message._ack_received = false;
-    message._ack_expected = true;
+    message.result = false;
+    message.ack_received = false;
+    message.ack_expected = true;
     return generate_and_send_pmtk_message(message);
 }
 
 bool L86::set_position_fix_interval(uint16_t interval)
 {
     Pmtk_message message;
-    message._type[0] = POSITION_FIX_INTERVAL_CODE[0];
-    message._type[1] = POSITION_FIX_INTERVAL_CODE[1];
-    message._type[2] = POSITION_FIX_INTERVAL_CODE[2];
-    message._parameters_count = PARAMETERS_COUNT_POSITION_FIX_INTERVAL;
+    message.type[0] = POSITION_FIX_INTERVAL_CODE[0];
+    message.type[1] = POSITION_FIX_INTERVAL_CODE[1];
+    message.type[2] = POSITION_FIX_INTERVAL_CODE[2];
+    message.parameters_count = PARAMETERS_COUNT_POSITION_FIX_INTERVAL;
 
     unsigned char size = 0;
     if (interval >= 100 && interval < 1000) {
@@ -290,21 +290,21 @@ bool L86::set_position_fix_interval(uint16_t interval)
         size = 5;
     }
 
-    message._parameters = (char **) malloc(sizeof(*message._parameters) * message._parameters_count);
-    for (int i = 0 ; i < message._parameters_count ; i++) {
-        *(message._parameters + i) = (char *) malloc(sizeof(**message._parameters) * size);
+    message.parameters = (char **) malloc(sizeof(*message.parameters) * message.parameters_count);
+    for (int i = 0 ; i < message.parameters_count ; i++) {
+        *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * size);
     }
 
     char s_interval[size] = {0};
     sprintf((char *)s_interval, "%d", interval);
     for (int i = 0 ; i < size ; i++) {
-        message._parameters[INTERVAL][i] = s_interval[i];
+        message.parameters[INTERVAL][i] = s_interval[i];
     }
-    message._parameters[INTERVAL][size] = '\0';
+    message.parameters[INTERVAL][size] = '\0';
 
-    message._ack_expected = true;
-    message._result = false;
-    message._ack_received = false;
+    message.ack_expected = true;
+    message.result = false;
+    message.ack_received = false;
     return generate_and_send_pmtk_message(message);
 }
 
@@ -314,33 +314,33 @@ bool L86::start(StartMode start_mode)
 
     switch (start_mode) {
         case StartMode::FULL_COLD_START:
-            message._type[0] = FULL_COLD_START_MODE_CODE[0];
-            message._type[1] = FULL_COLD_START_MODE_CODE[1];
-            message._type[2] = FULL_COLD_START_MODE_CODE[2];
+            message.type[0] = FULL_COLD_START_MODE_CODE[0];
+            message.type[1] = FULL_COLD_START_MODE_CODE[1];
+            message.type[2] = FULL_COLD_START_MODE_CODE[2];
             break;
 
         case StartMode::COLD_START:
-            message._type[0] = COLD_START_MODE_CODE[0];
-            message._type[1] = COLD_START_MODE_CODE[1];
-            message._type[2] = COLD_START_MODE_CODE[2];
+            message.type[0] = COLD_START_MODE_CODE[0];
+            message.type[1] = COLD_START_MODE_CODE[1];
+            message.type[2] = COLD_START_MODE_CODE[2];
             break;
 
         case StartMode::WARM_START:
-            message._type[0] = WARM_START_MODE_CODE[0];
-            message._type[1] = WARM_START_MODE_CODE[1];
-            message._type[2] = WARM_START_MODE_CODE[2];
+            message.type[0] = WARM_START_MODE_CODE[0];
+            message.type[1] = WARM_START_MODE_CODE[1];
+            message.type[2] = WARM_START_MODE_CODE[2];
             break;
 
         case StartMode::HOT_START:
-            message._type[0] = HOT_START_MODE_CODE[0];
-            message._type[1] = HOT_START_MODE_CODE[1];
-            message._type[2] = HOT_START_MODE_CODE[2];
+            message.type[0] = HOT_START_MODE_CODE[0];
+            message.type[1] = HOT_START_MODE_CODE[1];
+            message.type[2] = HOT_START_MODE_CODE[2];
             break;
     }
-    message._parameters_count = 0;
-    message._ack_expected = false;
-    message._result = false;
-    message._ack_received = false;
+    message.parameters_count = 0;
+    message.ack_expected = false;
+    message.result = false;
+    message.ack_received = false;
 
     return generate_and_send_pmtk_message(message);
 }
@@ -349,43 +349,43 @@ bool L86::standby_mode(StandbyMode standby_mode)
 {
     Pmtk_message message;
 
-    message._type[0] = '2';
-    message._type[1] = '2';
-    message._type[2] = '5';
-    message._parameters_count = PARAMETERS_COUNT_STANDBY_MODE;
-    message._parameters = (char **) malloc(sizeof(*message._parameters) * message._parameters_count);
-    for (int i = 0 ; i < message._parameters_count ; i++) {
+    message.type[0] = '2';
+    message.type[1] = '2';
+    message.type[2] = '5';
+    message.parameters_count = PARAMETERS_COUNT_STANDBY_MODE;
+    message.parameters = (char **) malloc(sizeof(*message.parameters) * message.parameters_count);
+    for (int i = 0 ; i < message.parameters_count ; i++) {
         if (i != 0) {
-            *(message._parameters + i) = (char *) malloc(sizeof(**message._parameters) * DEFAULT_PARAMETERS_COUNT_STANDBY_MODE);
+            *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * DEFAULT_PARAMETERS_COUNT_STANDBY_MODE);
         } else {
-            *(message._parameters + i) = (char *) malloc(sizeof(**message._parameters) * 1);
+            *(message.parameters + i) = (char *) malloc(sizeof(**message.parameters) * 1);
         }
     }
 
     switch (standby_mode) {
         case StandbyMode::NORMAL_MODE:
-            message._parameters[STANDBY_MODE] = (char *)"0";
+            message.parameters[STANDBY_MODE] = (char *)"0";
             break;
         case StandbyMode::PERIODIC_BACKUP_MODE:
-            message._parameters[STANDBY_MODE] = (char *)"1";
+            message.parameters[STANDBY_MODE] = (char *)"1";
             break;
         case StandbyMode::PERIODIC_STANDBY_MODE:
-            message._parameters[STANDBY_MODE] = (char *)"2";
+            message.parameters[STANDBY_MODE] = (char *)"2";
             break;
         case StandbyMode::PERPETUAL_BACKUP_MODE:
-            message._parameters[STANDBY_MODE] = (char *)"4";
+            message.parameters[STANDBY_MODE] = (char *)"4";
             break;
         case StandbyMode::AL_STANDBY_MODE:
-            message._parameters[STANDBY_MODE] = (char *)"8";
+            message.parameters[STANDBY_MODE] = (char *)"8";
             break;
         case StandbyMode::AL_BACKUP_MODE:
-            message._parameters[STANDBY_MODE] = (char *)"9";
+            message.parameters[STANDBY_MODE] = (char *)"9";
             break;
     }
 
-    message._result = false;
-    message._ack_received = false;
-    message._ack_expected = true;
+    message.result = false;
+    message.ack_received = false;
+    message.ack_expected = true;
     return generate_and_send_pmtk_message(message);
 }
 
@@ -473,16 +473,16 @@ bool L86::generate_and_send_pmtk_message(Pmtk_message message)
     serialize_pmtk_message(message, (char *)buffer);
     _current_pmtk_message = message;
 
-    for (int i = 0 ; i < 5 && _current_pmtk_message._result == false ; i++) {
+    for (int i = 0 ; i < 5 && _current_pmtk_message.result == false ; i++) {
         _uart->write((uint8_t *)buffer, strlen(buffer));
-        if (!_current_pmtk_message._ack_expected) {
+        if (!_current_pmtk_message.ack_expected) {
             return true;
         }
-        for (int j = 0 ; j < 3 && _current_pmtk_message._ack_received == false; j++) {
+        for (int j = 0 ; j < 3 && _current_pmtk_message.ack_received == false; j++) {
             ThisThread::sleep_for(150);
         }
     }
-    return _current_pmtk_message._result;
+    return _current_pmtk_message.result;
 }
 
 unsigned char L86::calculate_checksum(char *message)
@@ -525,12 +525,12 @@ void L86::parse_message(char *message)
         case MINMEA_SENTENCE_PMTK_ACK:
             struct minmea_sentence_pmtk_ack pmtk_ack_frame;
             if (minmea_parse_pmtk_ack(&pmtk_ack_frame, message)) {
-                if (_current_pmtk_message._type[0] == pmtk_ack_frame.command[0] && _current_pmtk_message._type[1] == pmtk_ack_frame.command[1] && _current_pmtk_message._type[2] == pmtk_ack_frame.command[2]) {
-                    _current_pmtk_message._ack_received = true;
+                if (_current_pmtk_message.type[0] == pmtk_ack_frame.command[0] && _current_pmtk_message.type[1] == pmtk_ack_frame.command[1] && _current_pmtk_message.type[2] == pmtk_ack_frame.command[2]) {
+                    _current_pmtk_message.ack_received = true;
                     if (pmtk_ack_frame.status == MINMEA_PMTK_ACK_CONFIG_STATUS_SUCCESS) {
-                        _current_pmtk_message._result = true;
+                        _current_pmtk_message.result = true;
                     } else {
-                        _current_pmtk_message._result = false;
+                        _current_pmtk_message.result = false;
                     }
                 }
             }

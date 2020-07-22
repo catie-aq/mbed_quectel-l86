@@ -708,11 +708,11 @@ void serialize_pmtk_message(Pmtk_message pmtk_message, char *buffer)
 {
     /* PMTK frame setting up*/
     char packet_temp[PMTK_PACKET_SIZE];
-    sprintf(buffer, "$PMTK%c%c%c", pmtk_message._type[0], pmtk_message._type[1], pmtk_message._type[2]);
+    sprintf(buffer, "$PMTK%c%c%c", pmtk_message.type[0], pmtk_message.type[1], pmtk_message.type[2]);
 
-    for (int i = 0 ; i < pmtk_message._parameters_count ; i++) {
+    for (int i = 0 ; i < pmtk_message.parameters_count ; i++) {
         sprintf(packet_temp, "%s", buffer);
-        sprintf(buffer, "%s,%s", packet_temp, pmtk_message._parameters[i]);
+        sprintf(buffer, "%s,%s", packet_temp, pmtk_message.parameters[i]);
     }
     sprintf(packet_temp, "%s*", buffer);
     sprintf(buffer, "%s%02X\r\n", packet_temp, minmea_checksum(packet_temp));

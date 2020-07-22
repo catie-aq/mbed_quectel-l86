@@ -31,12 +31,12 @@ extern "C" {
 #define MINMEA_MAX_LENGTH 80
 
 typedef struct {
-    char _type[ID_PACKET_SIZE];
-    bool _ack_expected;
-    bool _ack_received;
-    uint8_t _parameters_count;
-    char **_parameters;
-    bool _result;
+    char type[ID_PACKET_SIZE];
+    bool ack_expected;
+    bool ack_received;
+    uint8_t parameters_count;
+    char **parameters;
+    bool result;
 } Pmtk_message;
 
 enum minmea_sentence_id {
