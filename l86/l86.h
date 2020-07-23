@@ -259,14 +259,6 @@ private:
     bool generate_and_send_pmtk_message(minmea_sentence_pmtk message);
 
     /*!
-     *  Calculate the message checksum
-     *
-     *  \param message PMTK message from which we calculate the checksum
-     *
-     */
-    unsigned char calculate_checksum(char *message);
-
-    /*!
      *  Start receiving message from L86 module
      *
      */
@@ -299,8 +291,6 @@ private:
     void set_longitude(minmea_float longitude);
 
     void set_latitude(minmea_float latitude);
-
-    bool verify_checksum(char *message);
 
     void parse_message(char *message);
 

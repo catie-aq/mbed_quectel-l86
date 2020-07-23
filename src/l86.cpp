@@ -24,56 +24,6 @@ constexpr int DEFAULT_PARAMETERS_COUNT_STANDBY_MODE = 6;    //!< Number of defau
 constexpr int PARAMETERS_BEGIN = 7;                         //!< Parameters begin index in received messages
 constexpr int LIMIT_SATELLITES = 4;                         //!< Max number of satellites in a view
 
-constexpr int PMTK_COMMAND_CODE_INDEX = 9;                  //!< Index of pmtk command code first character
-constexpr int PMTK_COMMAND_RESULT = 13;                     //!< Pmtk command result index
-constexpr int PMTK_ANSWER_SIZE = 50;                        //!< Pmtk received message size
-constexpr int PMTK_PACKET_TYPE_INDEX = 5;                   //!< Pmtk received message command code index
-constexpr char INVALID_PACKET = '0';                        //!< Invalid packet code
-constexpr char UNSUPPORTED_PACKET_TYPE = '1';               //!< Unsupported packet code
-constexpr char VALID_PACKET_AND_ACTION_FAILED = '2';        //!< Valid packet but action failed code
-constexpr char VALID_PACKET_AND_COMMAND_SUCCEED = '3';      //!< Valid packet and command succed code
-constexpr int CHECKSUM_LEN = 2;                             //!< Checksum length
-constexpr int FRAME_END_LEN = 3;                            //!< Received message right shift to access to the checksum
-
-constexpr int RMC_POSITIONNING_MODE = 11;                   //!< Positionning mode information index in RMC messages
-constexpr int RMC_DATE = 8;                                 //!< Date information index in RMC messages
-constexpr int RMC_TIME = 0;                                 //!< Time information index in RMC messages
-constexpr int RMC_LATITUDE = 2;                             //!< Latitude information index in RMC messages
-constexpr int RMC_LATITUDE_N_S = 3;                         //!< Latitude N/S information index in RMC messages
-constexpr int RMC_LONGITUDE = 4;                            //!< Longitude information index in RMC messages
-constexpr int RMC_LONGITUDE_E_W = 5;                        //!< Longitude E/W information index in RMC messages
-constexpr int RMC_SPEED_KNOTS = 6;                          //!< Speed in knots information index in RMC messages
-
-constexpr int VTG_POSITIONNING_MODE = 8;                    //!< Positionning mode information index in VTG messages
-constexpr int VTG_SPEED_KNOTS = 4;                          //!< Speed in knots information index in VTG messages
-constexpr int VTG_SPEED_KMH = 6;                            //!< Speed in km/h information index in VTG messages
-
-constexpr int GGA_FIX_STATUS = 5;                           //!< Fixed status information index in GGA messages
-constexpr int GGA_TIME = 0;                                 //!< Time information index in GGA messages
-constexpr int GGA_LATITUDE = 1;                             //!< Latitude information index in GGA messages
-constexpr int GGA_LATITUDE_N_S = 2;                         //!< Latitude N/S information index in GGA messages
-constexpr int GGA_LONGITUDE = 3;                            //!< Longitude information index in GGA messages
-constexpr int GGA_LONGITUDE_E_W = 4;                        //!< Longitude E/W information index in GGA messages
-constexpr int GGA_ALTITUDE = 8;                             //!< Altitude information index in GGA messages
-constexpr int GGA_SATELLITE_COUNT = 6;                      //!< Satellites count information index in GGA messages
-
-constexpr int GSA_FIX_SATELLITE_STATUS = 1;                 //!< Fixed satellite status information index in GSA messages
-constexpr int GSA_MODE = 0;                                 //!< Mode information index in GSA messages
-constexpr int GSA_DILUTION_OF_PRECISION_HORIZONTAL = 15;    //!< Horizontal dilution of precision information index in GSA messages
-constexpr int GSA_DILUTION_OF_PRECISION_POSITIONAL = 14;    //!< Positional dilution of precision information index in GSA messages
-constexpr int GSA_DILUTION_OF_PRECISION_VERTICAL = 15;      //!< Vertical dilution of precision information index in GSA messages
-
-constexpr int GSV_MESSAGES_COUNT = 0;                       //!< Messages count information index in GSV messages
-constexpr int GSV_SEQUENCE_NUMBER = 1;                      //!< Sequence number information index in GSV messages
-constexpr int GSV_SATELLITES_COUNT = 0;                     //!< Satellites count information index in GSV messages
-
-constexpr int GLL_TIME = 4;                                 //!< Time information index in GLL messages
-constexpr int GLL_POSITIONNING_MODE = 6;                    //!< Positionning mode information index in GLL messages
-constexpr int GLL_LATITUDE = 0;                             //!< Latitude information index in GLL messages
-constexpr int GLL_LATITUDE_N_S = 1;                         //!< Latitude N/S information index in GLL messages
-constexpr int GLL_LONGITUDE = 2;                            //!< Longitude information index in GLL messages
-constexpr int GLL_LONGITUDE_E_W = 3;                        //!< Longitude E/W information index in GLL messages
-
 }
 
 
@@ -399,22 +349,6 @@ bool L86::generate_and_send_pmtk_message(minmea_sentence_pmtk message)
     return _current_pmtk_message.result;
 }
 
-unsigned char L86::calculate_checksum(char *message)
-{
-    unsigned char sum = 0;
-    bool is_message = false;
-    uint8_t message_len = strlen(message);
-    for (int index = 0 ; message[index] != '*' && index < message_len - 1  ; index++) {
-        if (!is_message && message[index] == '$') {
-            is_message = true;
-        } else if (is_message) {
-            sum ^= message[index];
-        }
-    }
-
-    return sum;
-}
-
 void L86::get_received_message()
 {
     static int message_len = 0;
@@ -642,11 +576,4 @@ void L86::set_longitude(minmea_float longitude)
 void L86::set_latitude(minmea_float latitude)
 {
     _position_informations.latitude = minmea_tocoord(&latitude);
-}
-
-bool L86::verify_checksum(char *message)
-{
-    uint8_t checksum_initial_index = strlen(message) - FRAME_END_LEN - CHECKSUM_LEN;
-    uint8_t checksum = uint8_t{strtol(&message[checksum_initial_index + 1], NULL, 16)};
-    return (checksum == calculate_checksum(message));
 }
