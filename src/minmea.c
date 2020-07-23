@@ -704,6 +704,47 @@ bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence)
     return true;
 }
 
+struct minmea_sentence_pmtk minmea_initialize_pmtk_message(char code[3])
+{
+    struct minmea_sentence_pmtk pmtk_message;
+    for (int i = 0 ; i < 3 ; i++) {
+        pmtk_message.type[i] = code[i];
+    }
+
+    if (minmea_compare_pmtk_code(code, MINMEA_HOT_START_MODE_CODE) || minmea_compare_pmtk_code(code, MINMEA_WARM_START_MODE_CODE)
+            || minmea_compare_pmtk_code(code, MINMEA_COLD_START_MODE_CODE) || minmea_compare_pmtk_code(code, MINMEA_FULL_COLD_START_MODE_CODE)) {
+
+        pmtk_message.ack_expected = false;
+        pmtk_message.parameters_count = 0;
+        pmtk_message.ack_received = false;
+        pmtk_message.result = false;
+    } else {
+        int size = 1;
+        if (minmea_compare_pmtk_code(code, MINMEA_SATELLITE_SYSTEM_CODE)) {
+            pmtk_message.parameters_count = MINMEA_SATELLITE_SYSTEM_PARAMETERS_COUNT;
+        } else if (minmea_compare_pmtk_code(code, MINMEA_OUTPUT_FREQUENCY_CODE)) {
+            pmtk_message.parameters_count = MINMEA_OUTPUT_FREQUENCY_PARAMETERS_COUNT;
+        } else if (minmea_compare_pmtk_code(code, MINMEA_NAVIGATION_MODE_CODE)) {
+            pmtk_message.parameters_count = MINMEA_NAVIGATION_MODE_PARAMETERS_COUNT;
+        } else if (minmea_compare_pmtk_code(code, MINMEA_FIX_INTERVAL_CODE)) {
+            pmtk_message.parameters_count = MINMEA_FIX_INTERVAL_PARAMETERS_COUNT;
+            size = 5;
+        } else if (minmea_compare_pmtk_code(code, MINMEA_STANDBY_MODE_CODE)) {
+            pmtk_message.parameters_count = MINMEA_STANDBY_MODE_PARAMETERS_COUNT;
+        }
+
+        pmtk_message.parameters = (char **) malloc(sizeof(*pmtk_message.parameters) * pmtk_message.parameters_count);
+        for (int i = 0 ; i < pmtk_message.parameters_count ; i++) {
+            *(pmtk_message.parameters + i) = (char *) malloc(sizeof(**pmtk_message.parameters) * size);
+        }
+        pmtk_message.ack_expected = true;
+        pmtk_message.ack_received = false;
+        pmtk_message.result = false;
+
+    }
+    return pmtk_message;
+}
+
 void minmea_serialize_pmtk(struct minmea_sentence_pmtk pmtk_message, char *buffer)
 {
     /* PMTK frame setting up*/

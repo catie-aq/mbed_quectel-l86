@@ -24,10 +24,24 @@ extern "C" {
 #endif
 
 
-#define MINMEA_ID_PACKET_LENGTH 3          //!< Command code size
-#define MINMEA_PMTK_MAX_LENGTH 100         //!< Maximal Pmtk packet length
-#define MINMEA_PARAMETERS_COUNT_MAX 19     //!< Command parameters maximum number
-#define MINMEA_MAX_LENGTH 120              //!< Maximal nmea packet length
+#define MINMEA_ID_PACKET_LENGTH 3                  //!< Command code size
+#define MINMEA_PMTK_MAX_LENGTH 100                 //!< Maximal Pmtk packet length
+#define MINMEA_PARAMETERS_COUNT_MAX 19             //!< Command parameters maximum number
+#define MINMEA_MAX_LENGTH 120                      //!< Maximal nmea packet length
+#define MINMEA_SATELLITE_SYSTEM_PARAMETERS_COUNT 5 //!< Number of parameters to set satellite system
+#define MINMEA_SATELLITE_SYSTEM_CODE "353"         //!< Satellite system command code
+#define MINMEA_OUTPUT_FREQUENCY_PARAMETERS_COUNT 5 //!< Number of parameters to set nmea ouput frequency
+#define MINMEA_OUTPUT_FREQUENCY_CODE "314"         //!< Nmea output frequency command code
+#define MINMEA_NAVIGATION_MODE_PARAMETERS_COUNT 1  //!< Number of parameters to set navigation mode
+#define MINMEA_NAVIGATION_MODE_CODE "886"          //!< Navigation mode command
+#define MINMEA_FIX_INTERVAL_PARAMETERS_COUNT 1     //!< Number of parameters to set position fix interval
+#define MINMEA_FIX_INTERVAL_CODE "220"             //!< Position fix interval command code
+#define MINMEA_STANDBY_MODE_PARAMETERS_COUNT 1     //!< Number of parameters to set standby mode
+#define MINMEA_STANDBY_MODE_CODE "225"             //!< Number of parameters to set standby mode
+#define MINMEA_FULL_COLD_START_MODE_CODE "104"     //!< Full cold start mode command code
+#define MINMEA_COLD_START_MODE_CODE "103"          //!< Cold start mode command code
+#define MINMEA_WARM_START_MODE_CODE "102"          //!< Warm start mode command code
+#define MINMEA_HOT_START_MODE_CODE "101"           //!< Hot start mode command code
 
 
 enum minmea_sentence_id {
@@ -238,6 +252,12 @@ bool minmea_parse_gsv(struct minmea_sentence_gsv *frame, const char *sentence);
 bool minmea_parse_vtg(struct minmea_sentence_vtg *frame, const char *sentence);
 bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence);
 
+
+/*
+ * Initialize pmtk message information based on the code
+ */
+struct minmea_sentence_pmtk minmea_initialize_pmtk_message(char code[3]);
+
 /**
  * Serialize PMTK message from a Pmtk_message structure
  */
@@ -266,6 +286,17 @@ static inline int_least32_t minmea_rescale(struct minmea_float *f, int_least32_t
     }
 }
 
+/**
+ * Compare two pmtk command codes
+ * Return True if equals
+ */
+inline bool minmea_compare_pmtk_code(char *code1, char *code2)
+{
+    if (code1[0] == code2[0] && code1[1] == code2[1] && code1[2] == code2[2]) {
+        return true;
+    }
+    return false;
+}
 /**
  * Convert a fixed-point value to a floating-point value.
  * Returns NaN for "unknown" values.
