@@ -242,7 +242,7 @@ private:
     BufferedSerial *_uart;
     minmea_sentence_pmtk _current_pmtk_message;
     int _registered_satellite_count;
-    char _received_message[MAX_MESSAGE_SIZE];
+    char _received_message[MINMEA_MAX_LENGTH];
     Position _position_informations;
     Movement _movement_informations;
     Informations _global_informations;

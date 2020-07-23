@@ -24,12 +24,10 @@ extern "C" {
 #endif
 
 
-#define MAX_MESSAGE_SIZE 200       //!< Maximum received message size
-#define ID_PACKET_SIZE 3           //!< Command code size
-#define PMTK_PACKET_SIZE 100       //!< Maximal Pmtk packet length
-#define MAX_PARAMETERS_COUNT 19    //!< Command parameters maximum number
-#define MINMEA_MAX_LENGTH 80
-
+#define MINMEA_ID_PACKET_LENGTH 3          //!< Command code size
+#define MINMEA_PMTK_MAX_LENGTH 100         //!< Maximal Pmtk packet length
+#define MINMEA_PARAMETERS_COUNT_MAX 19     //!< Command parameters maximum number
+#define MINMEA_MAX_LENGTH 120              //!< Maximal nmea packet length
 
 
 enum minmea_sentence_id {
@@ -72,7 +70,7 @@ enum minmea_pmtk_ack_config_status {
 };
 
 struct minmea_sentence_pmtk {
-    char type[ID_PACKET_SIZE];
+    char type[MINMEA_ID_PACKET_LENGTH];
     bool ack_expected;
     bool ack_received;
     uint8_t parameters_count;

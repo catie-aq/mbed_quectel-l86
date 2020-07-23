@@ -469,7 +469,7 @@ int L86::registered_satellite_count()
 
 bool L86::generate_and_send_pmtk_message(minmea_sentence_pmtk message)
 {
-    char buffer[PMTK_PACKET_SIZE];
+    char buffer[MINMEA_PMTK_MAX_LENGTH];
     minmea_serialize_pmtk(message, (char *)buffer);
     _current_pmtk_message = message;
 
@@ -505,7 +505,7 @@ void L86::get_received_message()
 {
     static int message_len = 0;
     while (_uart->readable()) {
-        if (message_len >= MAX_MESSAGE_SIZE - 1) {
+        if (message_len >= MINMEA_MAX_LENGTH - 1) {
             message_len = 0;
         }
         _uart->read(&_received_message[message_len++], 1);

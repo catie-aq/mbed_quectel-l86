@@ -707,7 +707,7 @@ bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence)
 void minmea_serialize_pmtk(struct minmea_sentence_pmtk pmtk_message, char *buffer)
 {
     /* PMTK frame setting up*/
-    char packet_temp[PMTK_PACKET_SIZE];
+    char packet_temp[MINMEA_PMTK_MAX_LENGTH];
     sprintf(buffer, "$PMTK%c%c%c", pmtk_message.type[0], pmtk_message.type[1], pmtk_message.type[2]);
 
     for (int i = 0 ; i < pmtk_message.parameters_count ; i++) {
