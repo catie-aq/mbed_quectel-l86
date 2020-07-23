@@ -112,7 +112,7 @@ L86::L86(BufferedSerial *uart)
 
 bool L86::set_satellite_system(SatelliteSystems satellite_systems)
 {
-    Pmtk_message message;
+    minmea_sentence_pmtk message;
     message.type[0] = SATELLITE_SYSTEM_CODE[0];
     message.type[1] = SATELLITE_SYSTEM_CODE[1];
     message.type[2] = SATELLITE_SYSTEM_CODE[2];
@@ -159,7 +159,7 @@ bool L86::set_satellite_system(SatelliteSystems satellite_systems)
 
 bool L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency)
 {
-    Pmtk_message message;
+    minmea_sentence_pmtk message;
 
     message.type[0] = NMEA_OUTPUT_FREQUENCY_CODE[0];
     message.type[1] = NMEA_OUTPUT_FREQUENCY_CODE[1];
@@ -238,7 +238,7 @@ bool L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency fr
 
 bool L86::set_navigation_mode(NavigationMode navigation_mode)
 {
-    Pmtk_message message;
+    minmea_sentence_pmtk message;
     message.type[0] = NAVIGATION_MODE_CODE[0];
     message.type[1] = NAVIGATION_MODE_CODE[1];
     message.type[2] = NAVIGATION_MODE_CODE[2];
@@ -275,7 +275,7 @@ bool L86::set_navigation_mode(NavigationMode navigation_mode)
 
 bool L86::set_position_fix_interval(uint16_t interval)
 {
-    Pmtk_message message;
+    minmea_sentence_pmtk message;
     message.type[0] = POSITION_FIX_INTERVAL_CODE[0];
     message.type[1] = POSITION_FIX_INTERVAL_CODE[1];
     message.type[2] = POSITION_FIX_INTERVAL_CODE[2];
@@ -310,7 +310,7 @@ bool L86::set_position_fix_interval(uint16_t interval)
 
 bool L86::start(StartMode start_mode)
 {
-    Pmtk_message message;
+    minmea_sentence_pmtk message;
 
     switch (start_mode) {
         case StartMode::FULL_COLD_START:
@@ -347,7 +347,7 @@ bool L86::start(StartMode start_mode)
 
 bool L86::standby_mode(StandbyMode standby_mode)
 {
-    Pmtk_message message;
+    minmea_sentence_pmtk message;
 
     message.type[0] = '2';
     message.type[1] = '2';
@@ -467,10 +467,10 @@ int L86::registered_satellite_count()
     return _registered_satellite_count;
 }
 
-bool L86::generate_and_send_pmtk_message(Pmtk_message message)
+bool L86::generate_and_send_pmtk_message(minmea_sentence_pmtk message)
 {
     char buffer[PMTK_PACKET_SIZE];
-    serialize_pmtk_message(message, (char *)buffer);
+    minmea_serialize_pmtk(message, (char *)buffer);
     _current_pmtk_message = message;
 
     for (int i = 0 ; i < 5 && _current_pmtk_message.result == false ; i++) {

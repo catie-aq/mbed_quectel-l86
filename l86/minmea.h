@@ -30,14 +30,7 @@ extern "C" {
 #define MAX_PARAMETERS_COUNT 19    //!< Command parameters maximum number
 #define MINMEA_MAX_LENGTH 80
 
-typedef struct {
-    char type[ID_PACKET_SIZE];
-    bool ack_expected;
-    bool ack_received;
-    uint8_t parameters_count;
-    char **parameters;
-    bool result;
-} Pmtk_message;
+
 
 enum minmea_sentence_id {
     MINMEA_INVALID = -1,
@@ -76,6 +69,15 @@ enum minmea_pmtk_ack_config_status {
     MINMEA_PMTK_ACK_CONFIG_STATUS_UNSUPPORTED = '1',
     MINMEA_PMTK_ACK_CONFIG_STATUS_FAILED = '2',
     MINMEA_PMTK_ACK_CONFIG_STATUS_SUCCESS = '3',
+};
+
+struct minmea_sentence_pmtk {
+    char type[ID_PACKET_SIZE];
+    bool ack_expected;
+    bool ack_received;
+    uint8_t parameters_count;
+    char **parameters;
+    bool result;
 };
 
 struct minmea_sentence_pmtk_ack {
@@ -241,7 +243,7 @@ bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence);
 /**
  * Serialize PMTK message from a Pmtk_message structure
  */
-void serialize_pmtk_message(Pmtk_message pmtk, char *message);
+void minmea_serialize_pmtk(struct minmea_sentence_pmtk pmtk_message, char *message);
 
 /**
  * Convert GPS UTC date/time representation to a UNIX timestamp.

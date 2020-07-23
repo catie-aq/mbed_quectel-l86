@@ -240,7 +240,7 @@ public:
 private:
 
     BufferedSerial *_uart;
-    Pmtk_message _current_pmtk_message;
+    minmea_sentence_pmtk _current_pmtk_message;
     int _registered_satellite_count;
     char _received_message[MAX_MESSAGE_SIZE];
     Position _position_informations;
@@ -256,7 +256,7 @@ private:
      *
      *  \return true if pmtk message action is succesfully executed on the module else return false
      */
-    bool generate_and_send_pmtk_message(Pmtk_message message);
+    bool generate_and_send_pmtk_message(minmea_sentence_pmtk message);
 
     /*!
      *  Calculate the message checksum
