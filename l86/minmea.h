@@ -24,24 +24,41 @@ extern "C" {
 #endif
 
 
-#define MINMEA_ID_PACKET_LENGTH 3                  //!< Command code size
-#define MINMEA_PMTK_MAX_LENGTH 100                 //!< Maximal Pmtk packet length
-#define MINMEA_PARAMETERS_COUNT_MAX 19             //!< Command parameters maximum number
-#define MINMEA_MAX_LENGTH 120                      //!< Maximal nmea packet length
-#define MINMEA_SATELLITE_SYSTEM_PARAMETERS_COUNT 5 //!< Number of parameters to set satellite system
-#define MINMEA_SATELLITE_SYSTEM_CODE "353"         //!< Satellite system command code
-#define MINMEA_OUTPUT_FREQUENCY_PARAMETERS_COUNT 5 //!< Number of parameters to set nmea ouput frequency
-#define MINMEA_OUTPUT_FREQUENCY_CODE "314"         //!< Nmea output frequency command code
-#define MINMEA_NAVIGATION_MODE_PARAMETERS_COUNT 1  //!< Number of parameters to set navigation mode
-#define MINMEA_NAVIGATION_MODE_CODE "886"          //!< Navigation mode command
-#define MINMEA_FIX_INTERVAL_PARAMETERS_COUNT 1     //!< Number of parameters to set position fix interval
-#define MINMEA_FIX_INTERVAL_CODE "220"             //!< Position fix interval command code
-#define MINMEA_STANDBY_MODE_PARAMETERS_COUNT 1     //!< Number of parameters to set standby mode
-#define MINMEA_STANDBY_MODE_CODE "225"             //!< Number of parameters to set standby mode
-#define MINMEA_FULL_COLD_START_MODE_CODE "104"     //!< Full cold start mode command code
-#define MINMEA_COLD_START_MODE_CODE "103"          //!< Cold start mode command code
-#define MINMEA_WARM_START_MODE_CODE "102"          //!< Warm start mode command code
-#define MINMEA_HOT_START_MODE_CODE "101"           //!< Hot start mode command code
+#define MINMEA_GPS_FLAG 0                           //!< GPS flag parameter index
+#define MINMEA_GLONASS_FLAG 1                       //!< GLONASS flag parameter index
+#define MINMEA_GALILEO_FLAG 2                       //!< GALILEO flag parameter index
+#define MINMEA_GALILEO_FULL_FLAG 3                  //!< GALILEO FULL flag parameter index
+#define MINMEA_BEIDOU_FLAG 4                        //!< BEIDOU flag parameter index
+
+#define MINMEA_GLL_FREQUENCY 0                      //!< GLL frequency parameter index
+#define MINMEA_RMC_FREQUENCY 1                      //!< RMC frequency parameter index
+#define MINMEA_VTG_FREQUENCY 2                      //!< VTG frequency parameter index
+#define MINMEA_GGA_FREQUENCY 3                      //!< GGA frequency parameter index
+#define MINMEA_GSA_FREQUENCY 4                      //!< GSA frequency parameter index
+#define MINMEA_GSV_FREQUENCY 5                      //!< GSV frequency parameter index
+
+#define MINMEA_NAVIGATION_MODE 0                    //!< Navigation mode parameter index
+
+#define MINMEA_STANDBY_MODE 0                       //!< Standby mode parameter index
+
+#define MINMEA_ID_PACKET_LENGTH 3                   //!< Command code size
+#define MINMEA_PMTK_MAX_LENGTH 100                  //!< Maximal Pmtk packet length
+#define MINMEA_PARAMETERS_COUNT_MAX 19              //!< Command parameters maximum number
+#define MINMEA_MAX_LENGTH 120                       //!< Maximal nmea packet length
+#define MINMEA_SATELLITE_SYSTEM_PARAMETERS_COUNT 5  //!< Number of parameters to set satellite system
+#define MINMEA_SATELLITE_SYSTEM_CODE "353"          //!< Satellite system command code
+#define MINMEA_OUTPUT_FREQUENCY_PARAMETERS_COUNT 19 //!< Number of parameters to set nmea ouput frequency
+#define MINMEA_OUTPUT_FREQUENCY_CODE "314"          //!< Nmea output frequency command code
+#define MINMEA_NAVIGATION_MODE_PARAMETERS_COUNT 1   //!< Number of parameters to set navigation mode
+#define MINMEA_NAVIGATION_MODE_CODE "886"           //!< Navigation mode command
+#define MINMEA_FIX_INTERVAL_PARAMETERS_COUNT 1      //!< Number of parameters to set position fix interval
+#define MINMEA_FIX_INTERVAL_CODE "220"              //!< Position fix interval command code
+#define MINMEA_STANDBY_MODE_PARAMETERS_COUNT 1      //!< Number of parameters to set standby mode
+#define MINMEA_STANDBY_MODE_CODE "225"              //!< Number of parameters to set standby mode
+#define MINMEA_FULL_COLD_START_MODE_CODE "104"      //!< Full cold start mode command code
+#define MINMEA_COLD_START_MODE_CODE "103"           //!< Cold start mode command code
+#define MINMEA_WARM_START_MODE_CODE "102"           //!< Warm start mode command code
+#define MINMEA_HOT_START_MODE_CODE "101"            //!< Hot start mode command code
 
 
 enum minmea_sentence_id {
@@ -206,6 +223,35 @@ struct minmea_sentence_zda {
     int minute_offset;
 };
 
+struct minmea_satellite_system {
+    bool gps;
+    bool glonass;
+    bool galileo;
+    bool galileo_full;
+    bool beidou;
+};
+
+struct minmea_nmea_output {
+    int gll_frequency;
+    int rmc_frequency;
+    int vtg_frequency;
+    int gga_frequency;
+    int gsa_frequency;
+    int gsv_frequency;
+};
+
+struct minmea_navigation {
+    int mode;
+};
+
+struct minmea_position_fix {
+    int interval;
+};
+
+struct minmea_standby {
+    uint8_t mode;
+};
+
 /**
  * Calculate raw sentence checksum. Does not check sentence integrity.
  */
@@ -262,6 +308,15 @@ struct minmea_sentence_pmtk minmea_initialize_pmtk_message(char code[3]);
  * Serialize PMTK message from a Pmtk_message structure
  */
 void minmea_serialize_pmtk(struct minmea_sentence_pmtk pmtk_message, char *message);
+
+/*
+ * Set parameters for PMTK commands serialization
+ */
+void minmea_set_satellite_system_parameters(struct minmea_sentence_pmtk *message, struct minmea_satellite_system satellite_systems);
+void minmea_set_nmea_output_parameters(struct minmea_sentence_pmtk *message, struct minmea_nmea_output nmea_output);
+void minmea_set_navigation_parameters(struct minmea_sentence_pmtk *message, struct minmea_navigation navigation);
+void minmea_set_position_fix_parameters(struct minmea_sentence_pmtk *message, struct minmea_position_fix position_fix);
+void minmea_set_standby_parameters(struct minmea_sentence_pmtk *message, struct minmea_standby standby);
 
 /**
  * Convert GPS UTC date/time representation to a UNIX timestamp.

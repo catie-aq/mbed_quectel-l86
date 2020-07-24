@@ -113,12 +113,12 @@ public:
 
     /* Standby mode */
     enum class StandbyMode {
-        NORMAL_MODE,
-        PERIODIC_BACKUP_MODE,
-        PERIODIC_STANDBY_MODE,
-        PERPETUAL_BACKUP_MODE,
-        AL_STANDBY_MODE,
-        AL_BACKUP_MODE
+        NORMAL_MODE = 0,
+        PERIODIC_BACKUP_MODE = 1,
+        PERIODIC_STANDBY_MODE = 2,
+        PERPETUAL_BACKUP_MODE = 4,
+        AL_STANDBY_MODE = 8,
+        AL_BACKUP_MODE = 9
     };
 
     /* NMEA commande types */
@@ -134,19 +134,19 @@ public:
 
     /* Frequencies supported */
     enum class NmeaFrequency {
-        ONE_POSITION_FIX,
-        TWO_POSITION_FIXES,
-        THREE_POSITION_FIXES,
-        FOUR_POSITION_FIXES,
-        FIVE_POSITION_FIXES
+        ONE_POSITION_FIX = 1,
+        TWO_POSITION_FIXES = 2,
+        THREE_POSITION_FIXES = 3,
+        FOUR_POSITION_FIXES = 4,
+        FIVE_POSITION_FIXES = 5
     };
 
     /* Navigation mode */
     enum class NavigationMode {
-        NORMAL_MODE,
-        RUNNING_MODE,
-        AVIATION_MODE,
-        BALLOON_MODE
+        NORMAL_MODE = 0,
+        RUNNING_MODE = 1,
+        AVIATION_MODE = 2,
+        BALLOON_MODE = 3
     };
 
     enum class SpeedUnit {

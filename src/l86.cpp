@@ -2,28 +2,7 @@
 
 
 namespace {
-
-constexpr int GPS_FLAG = 0;                                 //!< GPS flag parameter index
-constexpr int GLONASS_FLAG = 1;                             //!< GLONASS flag parameter index
-constexpr int GALILEO_FLAG = 2;                             //!< GALILEO flag parameter index
-constexpr int GALILEO_FULL_FLAG = 3;                        //!< GALILEO FULL flag parameter index
-constexpr int BEIDOU_FLAG = 4;                              //!< BEIDOU flag parameter index
-
-constexpr int GLL_FREQUENCY = 0;                            //!< GLL frequency parameter index
-constexpr int RMC_FREQUENCY = 1;                            //!< RMC frequency parameter index
-constexpr int VTG_FREQUENCY = 2;                            //!< VTG frequency parameter index
-constexpr int GGA_FREQUENCY = 3;                            //!< GGA frequency parameter index
-constexpr int GSA_FREQUENCY = 4;                            //!< GSA frequency parameter index
-constexpr int GSV_FREQUENCY = 5;                            //!< GSV frequency parameter index
-
-constexpr int NAVIGATION_MODE = 0;                          //!< Navigation mode parameter index
-constexpr int INTERVAL = 0;                                 //!< Position fix interval parameter index
-constexpr int STANDBY_MODE = 0;                             //!< Standby mode parameter index
-constexpr int DEFAULT_PARAMETERS_COUNT_STANDBY_MODE = 6;    //!< Number of default parameters which will allways initialized to 0
-
-constexpr int PARAMETERS_BEGIN = 7;                         //!< Parameters begin index in received messages
 constexpr int LIMIT_SATELLITES = 4;                         //!< Max number of satellites in a view
-
 }
 
 
@@ -48,35 +27,39 @@ bool L86::set_satellite_system(SatelliteSystems satellite_systems)
     minmea_sentence_pmtk message;
     message = minmea_initialize_pmtk_message(MINMEA_SATELLITE_SYSTEM_CODE);
 
+    struct minmea_satellite_system satellite_configuration;
+
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
-        message.parameters[GPS_FLAG] = (char *)"1";
+        satellite_configuration.gps = true;
     } else {
-        message.parameters[GPS_FLAG] = (char *)"0";
+        satellite_configuration.gps = false;
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GLONASS))) {
-        message.parameters[GLONASS_FLAG] = (char *)"1";
+        satellite_configuration.glonass = true;
     } else {
-        message.parameters[GLONASS_FLAG] = (char *)"0";
+        satellite_configuration.glonass = false;
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO))) {
-        message.parameters[GALILEO_FLAG] = (char *)"1";
+        satellite_configuration.galileo = true;
     } else {
-        message.parameters[GALILEO_FLAG] = (char *)"0";
+        satellite_configuration.galileo = false;
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO_FULL))) {
-        message.parameters[GALILEO_FULL_FLAG] = (char *)"1";
+        satellite_configuration.galileo_full = true;
     } else {
-        message.parameters[GALILEO_FULL_FLAG] = (char *)"0";
+        satellite_configuration.galileo_full = false;
     }
 
     if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::BEIDOU))) {
-        message.parameters[BEIDOU_FLAG] = (char *)"1";
+        satellite_configuration.beidou = true;
     } else {
-        message.parameters[BEIDOU_FLAG] = (char *)"0";
+        satellite_configuration.beidou = false;
     }
+
+    minmea_set_satellite_system_parameters(&message, satellite_configuration);
 
     return generate_and_send_pmtk_message(message);
 }
@@ -87,65 +70,45 @@ bool L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency fr
     minmea_sentence_pmtk message;
     message = minmea_initialize_pmtk_message(MINMEA_OUTPUT_FREQUENCY_CODE);
 
-    char c_frequency[10] = {0};
-    switch (frequency) {
-        case NmeaFrequency::ONE_POSITION_FIX:
-            c_frequency[0] = '1';
-            break;
-        case NmeaFrequency::TWO_POSITION_FIXES:
-            c_frequency[0] = '2';
-            break;
-        case NmeaFrequency::THREE_POSITION_FIXES:
-            c_frequency[0] = '3';
-            break;
-        case NmeaFrequency::FOUR_POSITION_FIXES:
-            c_frequency[0] = '4';
-            break;
-        case NmeaFrequency::FIVE_POSITION_FIXES:
-            c_frequency[0] = '5';
-            break;
-    }
+    struct minmea_nmea_output nmea_output_configuration;
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GLL))) {
-        message.parameters[GLL_FREQUENCY] = (char *)c_frequency;
+        nmea_output_configuration.gll_frequency = (int)frequency;
     } else {
-        message.parameters[GLL_FREQUENCY] = (char *)"0";
+        nmea_output_configuration.gll_frequency = 0;
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::RMC))) {
-        message.parameters[RMC_FREQUENCY] = (char *)c_frequency;
+        nmea_output_configuration.rmc_frequency = (int)frequency;
     } else {
-        message.parameters[RMC_FREQUENCY] = (char *)"0";
+        nmea_output_configuration.rmc_frequency = 0;
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::VTG))) {
-        message.parameters[VTG_FREQUENCY] = (char *)c_frequency;
+        nmea_output_configuration.vtg_frequency = (int)frequency;
     } else {
-        message.parameters[VTG_FREQUENCY] = (char *)"0";
+        nmea_output_configuration.vtg_frequency = 0;
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GGA))) {
-        message.parameters[GGA_FREQUENCY] = (char *)c_frequency;
+        nmea_output_configuration.gga_frequency = (int)frequency;
     } else {
-        message.parameters[GGA_FREQUENCY] = (char *)"0";
+        nmea_output_configuration.gga_frequency = 0;
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSA))) {
-        message.parameters[GSA_FREQUENCY] = (char *)c_frequency;
+        nmea_output_configuration.gsa_frequency = (int)frequency;
     } else {
-        message.parameters[GSA_FREQUENCY] = (char *)"0";
+        nmea_output_configuration.gsa_frequency = 0;
     }
 
     if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSV))) {
-        message.parameters[GSV_FREQUENCY] = (char *)c_frequency;
+        nmea_output_configuration.gsv_frequency = (int)frequency;
     } else {
-        message.parameters[GSV_FREQUENCY] = (char *)"0";
-    }
-    //TODO vérfier l'état des messages PMTK formés ici
-    for (uint8_t i = 6 ; i < message.parameters_count ; i++) {
-        message.parameters[i] = (char *)"0";
+        nmea_output_configuration.gsv_frequency = 0;
     }
 
+    minmea_set_nmea_output_parameters(&message, nmea_output_configuration);
     return generate_and_send_pmtk_message(message);
 }
 
@@ -155,23 +118,9 @@ bool L86::set_navigation_mode(NavigationMode navigation_mode)
     minmea_sentence_pmtk message;
     message = minmea_initialize_pmtk_message(MINMEA_NAVIGATION_MODE_CODE);
 
-    switch (navigation_mode) {
-        case NavigationMode::NORMAL_MODE:
-            message.parameters[NAVIGATION_MODE] = (char *)"0";
-            break;
-
-        case NavigationMode::RUNNING_MODE:
-            message.parameters[NAVIGATION_MODE] = (char *)"1";
-            break;
-
-        case NavigationMode::AVIATION_MODE:
-            message.parameters[NAVIGATION_MODE] = (char *)"2";
-            break;
-
-        case NavigationMode::BALLOON_MODE:
-            message.parameters[NAVIGATION_MODE] = (char *)"3";
-            break;
-    }
+    struct minmea_navigation navigation_configuration;
+    navigation_configuration.mode = (int)navigation_mode;
+    minmea_set_navigation_parameters(&message, navigation_configuration);
 
     return generate_and_send_pmtk_message(message);
 }
@@ -181,21 +130,9 @@ bool L86::set_position_fix_interval(uint16_t interval)
     minmea_sentence_pmtk message;
     message = minmea_initialize_pmtk_message(MINMEA_FIX_INTERVAL_CODE);
 
-    unsigned char size = 0;
-    if (interval >= 100 && interval < 1000) {
-        size = 3;
-    } else if (interval >= 1000 && interval < 10000) {
-        size = 4;
-    } else {
-        size = 5;
-    }
-
-    char s_interval[size] = {0};
-    sprintf((char *)s_interval, "%d", interval);
-    for (int i = 0 ; i < size ; i++) {
-        message.parameters[INTERVAL][i] = s_interval[i];
-    }
-    message.parameters[INTERVAL][size] = '\0';
+    struct minmea_position_fix position_fix_parameters;
+    position_fix_parameters.interval = interval;
+    minmea_set_position_fix_parameters(&message, position_fix_parameters);
 
     return generate_and_send_pmtk_message(message);
 }
@@ -229,26 +166,9 @@ bool L86::standby_mode(StandbyMode standby_mode)
     minmea_sentence_pmtk message;
     message = minmea_initialize_pmtk_message(MINMEA_STANDBY_MODE_CODE);
 
-    switch (standby_mode) {
-        case StandbyMode::NORMAL_MODE:
-            message.parameters[STANDBY_MODE] = (char *)"0";
-            break;
-        case StandbyMode::PERIODIC_BACKUP_MODE:
-            message.parameters[STANDBY_MODE] = (char *)"1";
-            break;
-        case StandbyMode::PERIODIC_STANDBY_MODE:
-            message.parameters[STANDBY_MODE] = (char *)"2";
-            break;
-        case StandbyMode::PERPETUAL_BACKUP_MODE:
-            message.parameters[STANDBY_MODE] = (char *)"4";
-            break;
-        case StandbyMode::AL_STANDBY_MODE:
-            message.parameters[STANDBY_MODE] = (char *)"8";
-            break;
-        case StandbyMode::AL_BACKUP_MODE:
-            message.parameters[STANDBY_MODE] = (char *)"9";
-            break;
-    }
+    struct minmea_standby standby_parameters;
+    standby_parameters.mode = (uint8_t)standby_mode;
+    minmea_set_standby_parameters(&message, standby_parameters);
 
     return generate_and_send_pmtk_message(message);
 }
