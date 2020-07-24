@@ -373,7 +373,7 @@ void L86::parse_message(char *message)
         case MINMEA_SENTENCE_PMTK_ACK:
             struct minmea_sentence_pmtk_ack pmtk_ack_frame;
             if (minmea_parse_pmtk_ack(&pmtk_ack_frame, message)) {
-                if (_current_pmtk_message.type[0] == pmtk_ack_frame.command[0] && _current_pmtk_message.type[1] == pmtk_ack_frame.command[1] && _current_pmtk_message.type[2] == pmtk_ack_frame.command[2]) {
+                if (minmea_compare_pmtk_code(_current_pmtk_message.type, pmtk_ack_frame.command)) {
                     _current_pmtk_message.ack_received = true;
                     if (pmtk_ack_frame.status == MINMEA_PMTK_ACK_CONFIG_STATUS_SUCCESS) {
                         _current_pmtk_message.result = true;
