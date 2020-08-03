@@ -3,6 +3,7 @@
 
 #include "mbed.h"
 #include "UnbufferedSerial.h"
+#include "minmea.h"
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -60,14 +61,16 @@ public:
     } Satellite;
 
     typedef struct {
-        double latitude;
-        double altitude;
-        double longitude;
+        float latitude;
+        float altitude;
+        float longitude;
+        float magnetic_variation;
     } Position;
 
     typedef struct {
-        double speed_kmh;
-        double speed_knots;
+        float speed_kmh;
+        float speed_knots;
+        float course_over_ground;
     } Movement;
 
     typedef struct {
@@ -76,18 +79,18 @@ public:
         FixStatusGGA fix_status;
     } Informations;
 
-    constexpr static int NB_MAX_SATELLITES = 20;       //!< Max number of satellites which are communating with L86 GNSS module
+    constexpr static int MAX_SATELLITES = 12;    //!< Max number of satellites which are communating with L86 GNSS module
     typedef struct {
         int satellite_count;
         Mode mode;
         FixStatusGSA status;
-        Satellite satellites[NB_MAX_SATELLITES];
+        Satellite satellites[MAX_SATELLITES];
     } Satellites_info;
 
     typedef struct {
-        double positional;
-        double horizontal;
-        double vertical;
+        float positional;
+        float horizontal;
+        float vertical;
     } DilutionOfPrecision;
 
     /* Start mode*/
@@ -110,12 +113,12 @@ public:
 
     /* Standby mode */
     enum class StandbyMode {
-        NORMAL_MODE,
-        PERIODIC_BACKUP_MODE,
-        PERIODIC_STANDBY_MODE,
-        PERPETUAL_BACKUP_MODE,
-        AL_STANDBY_MODE,
-        AL_BACKUP_MODE
+        NORMAL_MODE = 0,
+        PERIODIC_BACKUP_MODE = 1,
+        PERIODIC_STANDBY_MODE = 2,
+        PERPETUAL_BACKUP_MODE = 4,
+        AL_STANDBY_MODE = 8,
+        AL_BACKUP_MODE = 9
     };
 
     /* NMEA commande types */
@@ -131,19 +134,19 @@ public:
 
     /* Frequencies supported */
     enum class NmeaFrequency {
-        ONE_POSITION_FIX,
-        TWO_POSITION_FIXES,
-        THREE_POSITION_FIXES,
-        FOUR_POSITION_FIXES,
-        FIVE_POSITION_FIXES
+        ONE_POSITION_FIX = 1,
+        TWO_POSITION_FIXES = 2,
+        THREE_POSITION_FIXES = 3,
+        FOUR_POSITION_FIXES = 4,
+        FIVE_POSITION_FIXES = 5
     };
 
     /* Navigation mode */
     enum class NavigationMode {
-        NORMAL_MODE,
-        RUNNING_MODE,
-        AVIATION_MODE,
-        BALLOON_MODE
+        NORMAL_MODE = 0,
+        RUNNING_MODE = 1,
+        AVIATION_MODE = 2,
+        BALLOON_MODE = 3
     };
 
     enum class SpeedUnit {
@@ -167,7 +170,7 @@ public:
      *
      *  \param satellite_system (GPS, GLONASS, GALILEO, BEIDOU)
      */
-    void set_satellite_system(SatelliteSystems satellite_system);
+    bool set_satellite_system(SatelliteSystems satellite_system);
 
     /*!
      *  Select NMEA output frequencies
@@ -175,35 +178,35 @@ public:
      *  \param nmea_trame (RMC, VTG, GGA, GSA, GSV, GLL)
      *  \param frequency
      */
-    void set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency);
+    bool set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency);
 
     /*!
      *  Select navigation mode
      *
      *  \param navigation_mode (normal, running, aviation, balloon)
      */
-    void set_navigation_mode(NavigationMode navigation_mode);
+    bool set_navigation_mode(NavigationMode navigation_mode);
 
     /*!
      *  Set position fix interval
      *
      *  \param interval
      */
-    void set_position_fix_interval(uint16_t interval);
+    bool set_position_fix_interval(uint16_t interval);
 
     /*!
      *  Start the L86 module in the specified mode
      *
      *  \param start_mode (full cold, cold, warm, hot)
      */
-    void start(StartMode start_mode);
+    bool start(StartMode start_mode);
 
     /*!
      *  Put the module in periodic standby mode
      *
      *  \param standby_mode (normal, periodic backup, periodic standby, periodic backup, AlwaysLocate standby, AlwaysLocate backup)
      */
-    void standby_mode(StandbyMode standby_mode);
+    bool standby_mode(StandbyMode standby_mode);
 
     Satellite *satellites();
 
@@ -236,46 +239,24 @@ public:
 
 private:
 
-    constexpr static int MAX_MESSAGE_SIZE = 200;        //!< Maximum received message size
-    constexpr static int ID_PACKET_SIZE = 3;           //!< Command code size
-
     BufferedSerial *_uart;
-    bool _waiting_ack;
-    char _current_pmtk_command_code[ID_PACKET_SIZE];
-    bool _pmtk_command_result;
+    minmea_sentence_pmtk _current_pmtk_message;
     int _registered_satellite_count;
-    char _received_message[MAX_MESSAGE_SIZE];
+    char _received_message[MINMEA_MAX_LENGTH];
     Position _position_informations;
     Movement _movement_informations;
     Informations _global_informations;
     Satellites_info _satellites_informations;
     DilutionOfPrecision _dilution_of_precision;
 
-    constexpr static int MAX_PARAMETERS_COUNT = 19;    //!< Command parameters maximum number
-    typedef struct {
-        char packet_type[ID_PACKET_SIZE];
-        bool is_command;
-        uint8_t nb_param;
-        uint8_t anwser_size = MAX_PARAMETERS_COUNT;
-        char **parameters;
-        bool ack;
-    } Pmtk_message;
-
     /*!
-     *  Write a PMTK message which permit to configure the L86 module
+     *  Generate PMTK message and send it through serial communication
      *
      *  \param message : PMTK message object which contains all necessary informations to send to the L86 module
      *
+     *  \return true if pmtk message action is succesfully executed on the module else return false
      */
-    void write_pmtk_message(Pmtk_message message);
-
-    /*!
-     *  Calculate the message checksum
-     *
-     *  \param message PMTK message from which we calculate the checksum
-     *
-     */
-    unsigned char calculate_checksum(char *message);
+    bool generate_and_send_pmtk_message(minmea_sentence_pmtk message);
 
     /*!
      *  Start receiving message from L86 module
@@ -295,26 +276,24 @@ private:
      */
     void get_received_message();
 
-    constexpr static int MAX_PARAMETER_SIZE = 10;      //!< Command parameter maximum size
-    void set_parameter(char parameters[][MAX_PARAMETER_SIZE], NmeaCommandType command_type);
-
     void set_positionning_mode(char c_positionning_mode);
 
-    void set_fix_status(char c_fix_status);
+    void set_fix_status(int c_fix_status);
 
-    void set_fix_satellite_status(char c_fix_satellite_status);
+    void set_fix_satellite_status(int c_fix_satellite_status);
 
     void set_mode(char c_mode);
 
-    void set_time(char *time);
+    void set_time(minmea_time time);
 
-    void set_date(char *date);
+    void set_date(minmea_date date);
 
-    void set_longitude(char *longitude, char indicator);
+    void set_longitude(minmea_float longitude);
 
-    void set_latitude(char *latitude, char indicator);
+    void set_latitude(minmea_float latitude);
 
-    bool verify_checksum(char *message);
+    void parse_message(char *message);
+
 
 };
 
