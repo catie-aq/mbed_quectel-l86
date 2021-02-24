@@ -2,12 +2,15 @@
 #define CATIE_SIXTRON_L86_H_
 
 #include "mbed.h"
-#include "UnbufferedSerial.h"
-#include "minmea.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <bitset>
+
+#include "UnbufferedSerial.h"
+
+#include "minmea.h"
 
 #define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KMH
 

@@ -6,13 +6,13 @@
  * published by Sam Hocevar. See the COPYING file for more details.
  */
 
-#include "minmea.h"
-
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <time.h>
+
+#include "minmea.h"
 
 #define boolstr(s) ((s) ? "true" : "false")
 
@@ -704,44 +704,53 @@ bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence)
     return true;
 }
 
-struct minmea_sentence_pmtk minmea_initialize_pmtk_message(char code[3])
+struct minmea_sentence_pmtk minmea_initialize_pmtk_message(enum minmea_pmtk_packet_type packet_type)
 {
     struct minmea_sentence_pmtk pmtk_message;
-    for (int i = 0 ; i < 3 ; i++) {
-        pmtk_message.type[i] = code[i];
-    }
+    snprintf(pmtk_message.type, sizeof(pmtk_message.type), "%03X", packet_type);
 
-    if (minmea_compare_pmtk_code(code, MINMEA_HOT_START_MODE_CODE) || minmea_compare_pmtk_code(code, MINMEA_WARM_START_MODE_CODE)
-            || minmea_compare_pmtk_code(code, MINMEA_COLD_START_MODE_CODE) || minmea_compare_pmtk_code(code, MINMEA_FULL_COLD_START_MODE_CODE)) {
-
-        pmtk_message.ack_expected = false;
-        pmtk_message.parameters_count = 0;
-        pmtk_message.ack_received = false;
-        pmtk_message.result = false;
-    } else {
-        int size = 1;
-        if (minmea_compare_pmtk_code(code, MINMEA_SATELLITE_SYSTEM_CODE)) {
-            pmtk_message.parameters_count = MINMEA_SATELLITE_SYSTEM_PARAMETERS_COUNT;
-        } else if (minmea_compare_pmtk_code(code, MINMEA_OUTPUT_FREQUENCY_CODE)) {
-            pmtk_message.parameters_count = MINMEA_OUTPUT_FREQUENCY_PARAMETERS_COUNT;
-        } else if (minmea_compare_pmtk_code(code, MINMEA_NAVIGATION_MODE_CODE)) {
-            pmtk_message.parameters_count = MINMEA_NAVIGATION_MODE_PARAMETERS_COUNT;
-        } else if (minmea_compare_pmtk_code(code, MINMEA_FIX_INTERVAL_CODE)) {
+    int size = 1;
+    pmtk_message.ack_expected = true;
+    pmtk_message.ack_received = false;
+    pmtk_message.result = false;
+    switch (packet_type) {
+        case MINMEA_PMTK_CMD_HOT_START:
+        case MINMEA_PMTK_CMD_WARM_START:
+        case MINMEA_PMTK_CMD_COLD_START:
+        case MINMEA_PMTK_CMD_FULL_COLD_START: {
+            pmtk_message.ack_expected = false;
+            pmtk_message.parameters_count = 0;
+            return pmtk_message;
+        }
+        case MINMEA_PMTK_API_SET_POS_FIX: {
             pmtk_message.parameters_count = MINMEA_FIX_INTERVAL_PARAMETERS_COUNT;
             size = 5;
-        } else if (minmea_compare_pmtk_code(code, MINMEA_STANDBY_MODE_CODE)) {
+            break;
+        }
+        case MINMEA_PMTK_API_SET_PERIODIC_MODE: {
             pmtk_message.parameters_count = MINMEA_STANDBY_MODE_PARAMETERS_COUNT;
+            break;
         }
-
-        pmtk_message.parameters = (char **) malloc(sizeof(*pmtk_message.parameters) * pmtk_message.parameters_count);
-        for (int i = 0 ; i < pmtk_message.parameters_count ; i++) {
-            *(pmtk_message.parameters + i) = (char *) malloc(sizeof(**pmtk_message.parameters) * size);
+        case MINMEA_PMTK_API_SET_NMEA_OUTPUT: {
+            pmtk_message.parameters_count = MINMEA_OUTPUT_FREQUENCY_PARAMETERS_COUNT;
+            break;
         }
-        pmtk_message.ack_expected = true;
-        pmtk_message.ack_received = false;
-        pmtk_message.result = false;
-
+        case MINMEA_PMTK_API_SET_GNSS_SEARCH_MODE: {
+            pmtk_message.parameters_count = MINMEA_SATELLITE_SYSTEM_PARAMETERS_COUNT;
+            break;
+        }
+        case MINMEA_PMTK_FR_MODE: {
+            pmtk_message.parameters_count = MINMEA_NAVIGATION_MODE_PARAMETERS_COUNT;
+            break;
+        }
+        default:
+            break;
     }
+    pmtk_message.parameters = (char **) malloc(sizeof(*pmtk_message.parameters) * pmtk_message.parameters_count);
+    for (int i = 0 ; i < pmtk_message.parameters_count ; i++) {
+        *(pmtk_message.parameters + i) = (char *) malloc(sizeof(**pmtk_message.parameters) * size);
+    }
+
     return pmtk_message;
 }
 

@@ -25,7 +25,7 @@ L86::L86(BufferedSerial *uart)
 bool L86::set_satellite_system(SatelliteSystems satellite_systems)
 {
     minmea_sentence_pmtk message;
-    message = minmea_initialize_pmtk_message(MINMEA_SATELLITE_SYSTEM_CODE);
+    message = minmea_initialize_pmtk_message(MINMEA_PMTK_API_SET_GNSS_SEARCH_MODE);
 
     struct minmea_satellite_system satellite_configuration;
 
@@ -68,7 +68,7 @@ bool L86::set_satellite_system(SatelliteSystems satellite_systems)
 bool L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency)
 {
     minmea_sentence_pmtk message;
-    message = minmea_initialize_pmtk_message(MINMEA_OUTPUT_FREQUENCY_CODE);
+    message = minmea_initialize_pmtk_message(MINMEA_PMTK_API_SET_NMEA_OUTPUT);
 
     struct minmea_nmea_output nmea_output_configuration;
 
@@ -116,7 +116,7 @@ bool L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency fr
 bool L86::set_navigation_mode(NavigationMode navigation_mode)
 {
     minmea_sentence_pmtk message;
-    message = minmea_initialize_pmtk_message(MINMEA_NAVIGATION_MODE_CODE);
+    message = minmea_initialize_pmtk_message(MINMEA_PMTK_FR_MODE);
 
     struct minmea_navigation navigation_configuration;
     navigation_configuration.mode = (int)navigation_mode;
@@ -128,7 +128,7 @@ bool L86::set_navigation_mode(NavigationMode navigation_mode)
 bool L86::set_position_fix_interval(uint16_t interval)
 {
     minmea_sentence_pmtk message;
-    message = minmea_initialize_pmtk_message(MINMEA_FIX_INTERVAL_CODE);
+    message = minmea_initialize_pmtk_message(MINMEA_PMTK_API_SET_POS_FIX);
 
     struct minmea_position_fix position_fix_parameters;
     position_fix_parameters.interval = interval;
@@ -142,19 +142,19 @@ bool L86::start(StartMode start_mode)
     minmea_sentence_pmtk message;
     switch (start_mode) {
         case StartMode::FULL_COLD_START:
-            message = minmea_initialize_pmtk_message(MINMEA_FULL_COLD_START_MODE_CODE);
+            message = minmea_initialize_pmtk_message(MINMEA_PMTK_CMD_FULL_COLD_START);
             break;
 
         case StartMode::COLD_START:
-            message = minmea_initialize_pmtk_message(MINMEA_COLD_START_MODE_CODE);
+            message = minmea_initialize_pmtk_message(MINMEA_PMTK_CMD_COLD_START);
             break;
 
         case StartMode::WARM_START:
-            message = minmea_initialize_pmtk_message(MINMEA_WARM_START_MODE_CODE);
+            message = minmea_initialize_pmtk_message(MINMEA_PMTK_CMD_WARM_START);
             break;
 
         case StartMode::HOT_START:
-            message = minmea_initialize_pmtk_message(MINMEA_HOT_START_MODE_CODE);
+            message = minmea_initialize_pmtk_message(MINMEA_PMTK_CMD_HOT_START);
             break;
     }
 
@@ -164,7 +164,7 @@ bool L86::start(StartMode start_mode)
 bool L86::standby_mode(StandbyMode standby_mode)
 {
     minmea_sentence_pmtk message;
-    message = minmea_initialize_pmtk_message(MINMEA_STANDBY_MODE_CODE);
+    message = minmea_initialize_pmtk_message(MINMEA_PMTK_API_SET_PERIODIC_MODE);
 
     struct minmea_standby standby_parameters;
     standby_parameters.mode = (uint8_t)standby_mode;
@@ -263,7 +263,7 @@ bool L86::generate_and_send_pmtk_message(minmea_sentence_pmtk message)
             return true;
         }
         for (int j = 0 ; j < 3 && _current_pmtk_message.ack_received == false; j++) {
-            ThisThread::sleep_for(150);
+            ThisThread::sleep_for(150ms);
         }
     }
     return _current_pmtk_message.result;
@@ -293,7 +293,7 @@ void L86::parse_message(char *message)
         case MINMEA_SENTENCE_PMTK_ACK:
             struct minmea_sentence_pmtk_ack pmtk_ack_frame;
             if (minmea_parse_pmtk_ack(&pmtk_ack_frame, message)) {
-                if (minmea_compare_pmtk_code(_current_pmtk_message.type, pmtk_ack_frame.command)) {
+                if (!strcmp(_current_pmtk_message.type, pmtk_ack_frame.command)) {
                     _current_pmtk_message.ack_received = true;
                     if (pmtk_ack_frame.status == MINMEA_PMTK_ACK_CONFIG_STATUS_SUCCESS) {
                         _current_pmtk_message.result = true;
@@ -390,8 +390,9 @@ void L86::parse_message(char *message)
             }
             break;
 
-        default:
-            printf("\n -- Unknown command --> %s\n", message);
+        default: 
+            // printf("\n -- Unknown command --> %s\n", message);
+            break;
     }
 }
 

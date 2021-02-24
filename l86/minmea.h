@@ -41,24 +41,15 @@ extern "C" {
 
 #define MINMEA_STANDBY_MODE 0                       //!< Standby mode parameter index
 
-#define MINMEA_ID_PACKET_LENGTH 3                   //!< Command code size
+#define MINMEA_PMTK_PACKET_TYPE_LENGTH 3            //!< Command code size
 #define MINMEA_PMTK_MAX_LENGTH 100                  //!< Maximal Pmtk packet length
 #define MINMEA_PARAMETERS_COUNT_MAX 19              //!< Command parameters maximum number
 #define MINMEA_MAX_LENGTH 120                       //!< Maximal nmea packet length
 #define MINMEA_SATELLITE_SYSTEM_PARAMETERS_COUNT 5  //!< Number of parameters to set satellite system
-#define MINMEA_SATELLITE_SYSTEM_CODE "353"          //!< Satellite system command code
 #define MINMEA_OUTPUT_FREQUENCY_PARAMETERS_COUNT 19 //!< Number of parameters to set nmea ouput frequency
-#define MINMEA_OUTPUT_FREQUENCY_CODE "314"          //!< Nmea output frequency command code
 #define MINMEA_NAVIGATION_MODE_PARAMETERS_COUNT 1   //!< Number of parameters to set navigation mode
-#define MINMEA_NAVIGATION_MODE_CODE "886"           //!< Navigation mode command
 #define MINMEA_FIX_INTERVAL_PARAMETERS_COUNT 1      //!< Number of parameters to set position fix interval
-#define MINMEA_FIX_INTERVAL_CODE "220"              //!< Position fix interval command code
 #define MINMEA_STANDBY_MODE_PARAMETERS_COUNT 1      //!< Number of parameters to set standby mode
-#define MINMEA_STANDBY_MODE_CODE "225"              //!< Number of parameters to set standby mode
-#define MINMEA_FULL_COLD_START_MODE_CODE "104"      //!< Full cold start mode command code
-#define MINMEA_COLD_START_MODE_CODE "103"           //!< Cold start mode command code
-#define MINMEA_WARM_START_MODE_CODE "102"           //!< Warm start mode command code
-#define MINMEA_HOT_START_MODE_CODE "101"            //!< Hot start mode command code
 
 
 enum minmea_sentence_id {
@@ -72,7 +63,21 @@ enum minmea_sentence_id {
     MINMEA_SENTENCE_GSV,
     MINMEA_SENTENCE_VTG,
     MINMEA_SENTENCE_ZDA,
+    // MINMEA_SENTENCE_GPTXT, // Not implemented
     MINMEA_SENTENCE_PMTK_ACK
+};
+
+// MTK NMEA Packet Protocol (extension messages of the NMEA packet protocol)
+enum minmea_pmtk_packet_type {
+    MINMEA_PMTK_CMD_HOT_START = 101,
+    MINMEA_PMTK_CMD_WARM_START = 102,
+    MINMEA_PMTK_CMD_COLD_START = 103,
+    MINMEA_PMTK_CMD_FULL_COLD_START = 104,
+    MINMEA_PMTK_API_SET_POS_FIX = 220,
+    MINMEA_PMTK_API_SET_PERIODIC_MODE = 225,
+    MINMEA_PMTK_API_SET_NMEA_OUTPUT = 314,
+    MINMEA_PMTK_API_SET_GNSS_SEARCH_MODE = 353,
+    MINMEA_PMTK_FR_MODE = 886,
 };
 
 struct minmea_float {
@@ -101,7 +106,7 @@ enum minmea_pmtk_ack_config_status {
 };
 
 struct minmea_sentence_pmtk {
-    char type[MINMEA_ID_PACKET_LENGTH];
+    char type[MINMEA_PMTK_PACKET_TYPE_LENGTH];
     bool ack_expected;
     bool ack_received;
     uint8_t parameters_count;
@@ -302,7 +307,7 @@ bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence);
 /*
  * Initialize pmtk message information based on the code
  */
-struct minmea_sentence_pmtk minmea_initialize_pmtk_message(char code[3]);
+struct minmea_sentence_pmtk minmea_initialize_pmtk_message(enum minmea_pmtk_packet_type packet_type);
 
 /**
  * Serialize PMTK message from a Pmtk_message structure
@@ -341,17 +346,6 @@ static inline int_least32_t minmea_rescale(struct minmea_float *f, int_least32_t
     }
 }
 
-/**
- * Compare two pmtk command codes
- * Return True if equals
- */
-inline bool minmea_compare_pmtk_code(char *code1, char *code2)
-{
-    if (code1[0] == code2[0] && code1[1] == code2[1] && code1[2] == code2[2]) {
-        return true;
-    }
-    return false;
-}
 /**
  * Convert a fixed-point value to a floating-point value.
  * Returns NaN for "unknown" values.
