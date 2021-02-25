@@ -1,9 +1,6 @@
 /*
- * Copyright © 2014 Kosma Moczek <kosma@cloudyourcar.com>
- * This program is free software. It comes without any warranty, to the extent
- * permitted by applicable law. You can redistribute it and/or modify it under
- * the terms of the Do What The Fuck You Want To Public License, Version 2, as
- * published by Sam Hocevar. See the COPYING file for more details.
+ * Copyright (c) 2020-2021, CATIE
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdlib.h>
@@ -439,16 +436,15 @@ bool minmea_parse_pmtk_ack(struct minmea_sentence_pmtk_ack *frame, const char *s
 {
     // $PMTK001,314,3*36
     char type[8];
-    if (!minmea_scan(sentence, "tsc",
+    if (!minmea_scan(sentence, "tii",
                     type,
                     &frame->command,
-                    &frame->status)) {
+                    &frame->flag)) {
         return false;
     }
     if (strcmp(type, "PMTK001")) {
         return false;
     }
-    frame->command[3] = '\0';
 
     return true;
 }
@@ -704,68 +700,12 @@ bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence)
     return true;
 }
 
-struct minmea_sentence_pmtk minmea_initialize_pmtk_message(enum minmea_pmtk_packet_type packet_type)
-{
-    struct minmea_sentence_pmtk pmtk_message;
-    snprintf(pmtk_message.type, sizeof(pmtk_message.type), "%03X", packet_type);
-
-    int size = 1;
-    pmtk_message.ack_expected = true;
-    pmtk_message.ack_received = false;
-    pmtk_message.result = false;
-    switch (packet_type) {
-        case MINMEA_PMTK_CMD_HOT_START:
-        case MINMEA_PMTK_CMD_WARM_START:
-        case MINMEA_PMTK_CMD_COLD_START:
-        case MINMEA_PMTK_CMD_FULL_COLD_START: {
-            pmtk_message.ack_expected = false;
-            pmtk_message.parameters_count = 0;
-            return pmtk_message;
-        }
-        case MINMEA_PMTK_API_SET_POS_FIX: {
-            pmtk_message.parameters_count = MINMEA_FIX_INTERVAL_PARAMETERS_COUNT;
-            size = 5;
-            break;
-        }
-        case MINMEA_PMTK_API_SET_PERIODIC_MODE: {
-            pmtk_message.parameters_count = MINMEA_STANDBY_MODE_PARAMETERS_COUNT;
-            break;
-        }
-        case MINMEA_PMTK_API_SET_NMEA_OUTPUT: {
-            pmtk_message.parameters_count = MINMEA_OUTPUT_FREQUENCY_PARAMETERS_COUNT;
-            break;
-        }
-        case MINMEA_PMTK_API_SET_GNSS_SEARCH_MODE: {
-            pmtk_message.parameters_count = MINMEA_SATELLITE_SYSTEM_PARAMETERS_COUNT;
-            break;
-        }
-        case MINMEA_PMTK_FR_MODE: {
-            pmtk_message.parameters_count = MINMEA_NAVIGATION_MODE_PARAMETERS_COUNT;
-            break;
-        }
-        default:
-            break;
-    }
-    pmtk_message.parameters = (char **) malloc(sizeof(*pmtk_message.parameters) * pmtk_message.parameters_count);
-    for (int i = 0 ; i < pmtk_message.parameters_count ; i++) {
-        *(pmtk_message.parameters + i) = (char *) malloc(sizeof(**pmtk_message.parameters) * size);
-    }
-
-    return pmtk_message;
-}
-
 void minmea_serialize_pmtk(struct minmea_sentence_pmtk pmtk_message, char *buffer)
 {
-    /* PMTK frame setting up*/
-    char packet_temp[MINMEA_PMTK_MAX_LENGTH];
-    sprintf(buffer, "$PMTK%c%c%c", pmtk_message.type[0], pmtk_message.type[1], pmtk_message.type[2]);
-
-    for (int i = 0 ; i < pmtk_message.parameters_count ; i++) {
-        sprintf(packet_temp, "%s", buffer);
-        sprintf(buffer, "%s,%s", packet_temp, pmtk_message.parameters[i]);
-    }
-    sprintf(packet_temp, "%s*", buffer);
-    sprintf(buffer, "%s%02X\r\n", packet_temp, minmea_checksum(packet_temp));
+    char *append = buffer;
+    append += sprintf(append, "$PMTK%03i,%s*",
+            pmtk_message.type, pmtk_message.parameters);
+    append += sprintf(append, "%02X\r\n", minmea_checksum(buffer));
 }
 
 int minmea_gettime(struct timespec *ts, const struct minmea_date *date, const struct minmea_time *time_)
@@ -798,80 +738,3 @@ int minmea_gettime(struct timespec *ts, const struct minmea_date *date, const st
         return -1;
     }
 }
-
-void minmea_set_satellite_system_parameters(struct minmea_sentence_pmtk *message, struct minmea_satellite_system satellite_systems)
-{
-    if (satellite_systems.gps == true) {
-        message->parameters[MINMEA_GPS_FLAG] = (char *)"1";
-    } else {
-        message->parameters[MINMEA_GPS_FLAG] = (char *)"0";
-    }
-
-    if (satellite_systems.glonass == true) {
-        message->parameters[MINMEA_GLONASS_FLAG] = (char *)"1";
-    } else {
-        message->parameters[MINMEA_GLONASS_FLAG] = (char *)"0";
-    }
-
-    if (satellite_systems.galileo == true) {
-        message->parameters[MINMEA_GALILEO_FLAG] = (char *)"1";
-    } else {
-        message->parameters[MINMEA_GALILEO_FLAG] = (char *)"0";
-    }
-
-    if (satellite_systems.galileo == true) {
-        message->parameters[MINMEA_GALILEO_FULL_FLAG] = (char *)"1";
-    } else {
-        message->parameters[MINMEA_GALILEO_FULL_FLAG] = (char *)"0";
-    }
-
-    if (satellite_systems.beidou == true) {
-        message->parameters[MINMEA_BEIDOU_FLAG] = (char *)"1";
-    } else {
-        message->parameters[MINMEA_BEIDOU_FLAG] = (char *)"0";
-    }
-}
-
-void minmea_set_nmea_output_parameters(struct minmea_sentence_pmtk *message, struct minmea_nmea_output nmea_output)
-{
-    message->parameters[MINMEA_GLL_FREQUENCY][0] = nmea_output.gll_frequency + 48;
-    message->parameters[MINMEA_RMC_FREQUENCY][0] = nmea_output.rmc_frequency + 48;
-    message->parameters[MINMEA_VTG_FREQUENCY][0] = nmea_output.vtg_frequency + 48;
-    message->parameters[MINMEA_GGA_FREQUENCY][0] = nmea_output.gga_frequency + 48;
-    message->parameters[MINMEA_GSA_FREQUENCY][0] = nmea_output.gsa_frequency + 48;
-    message->parameters[MINMEA_GSV_FREQUENCY][0] = nmea_output.gsv_frequency + 48;
-
-    message->parameters[MINMEA_GLL_FREQUENCY][1] = 0;
-    message->parameters[MINMEA_RMC_FREQUENCY][1] = 0;
-    message->parameters[MINMEA_VTG_FREQUENCY][1] = 0;
-    message->parameters[MINMEA_GGA_FREQUENCY][1] = 0;
-    message->parameters[MINMEA_GSA_FREQUENCY][1] = 0;
-    message->parameters[MINMEA_GSV_FREQUENCY][1] = 0;
-
-
-    //TODO vérfier l'état des messages PMTK formés ici
-    for (uint8_t i = 6 ; i < message->parameters_count ; i++) {
-        message->parameters[i] = (char *)"0";
-    }
-
-}
-
-void minmea_set_navigation_parameters(struct minmea_sentence_pmtk *message, struct minmea_navigation navigation)
-{
-    message->parameters[MINMEA_NAVIGATION_MODE][0] = navigation.mode + 48;
-    message->parameters[MINMEA_NAVIGATION_MODE][1] = 0;
-}
-
-void minmea_set_position_fix_parameters(struct minmea_sentence_pmtk *message, struct minmea_position_fix position_fix)
-{
-    sprintf(message->parameters[0], "%d", position_fix.interval);
-}
-
-void minmea_set_standby_parameters(struct minmea_sentence_pmtk *message, struct minmea_standby standby)
-{
-    message->parameters[MINMEA_STANDBY_MODE][0] = standby.mode + 48;
-    message->parameters[MINMEA_STANDBY_MODE][1] = 0;
-}
-
-
-/* vim: set ts=4 sw=4 et: */

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2020-2021, CATIE
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef CATIE_SIXTRON_L86_H_
 #define CATIE_SIXTRON_L86_H_
 
