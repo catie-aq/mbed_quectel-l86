@@ -1,9 +1,6 @@
 /*
- * Copyright © 2014 Kosma Moczek <kosma@cloudyourcar.com>
- * This program is free software. It comes without any warranty, to the extent
- * permitted by applicable law. You can redistribute it and/or modify it under
- * the terms of the Do What The Fuck You Want To Public License, Version 2, as
- * published by Sam Hocevar. See the COPYING file for more details.
+ * Copyright (c) 2020-2021, CATIE
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef MINMEA_H
@@ -19,9 +16,6 @@ extern "C" {
 #include <errno.h>
 #include <time.h>
 #include <math.h>
-#ifdef MINMEA_INCLUDE_COMPAT
-#include <minmea_compat.h>
-#endif
 
 
 #define MINMEA_GPS_FLAG 0                           //!< GPS flag parameter index
@@ -41,15 +35,9 @@ extern "C" {
 
 #define MINMEA_STANDBY_MODE 0                       //!< Standby mode parameter index
 
-#define MINMEA_PMTK_PACKET_TYPE_LENGTH 3            //!< Command code size
 #define MINMEA_PMTK_MAX_LENGTH 100                  //!< Maximal Pmtk packet length
-#define MINMEA_PARAMETERS_COUNT_MAX 19              //!< Command parameters maximum number
+#define MINMEA_PMTK_PACKET_DATA_MAX_LENGTH 96       //!< Max PMTK packet data length
 #define MINMEA_MAX_LENGTH 120                       //!< Maximal nmea packet length
-#define MINMEA_SATELLITE_SYSTEM_PARAMETERS_COUNT 5  //!< Number of parameters to set satellite system
-#define MINMEA_OUTPUT_FREQUENCY_PARAMETERS_COUNT 19 //!< Number of parameters to set nmea ouput frequency
-#define MINMEA_NAVIGATION_MODE_PARAMETERS_COUNT 1   //!< Number of parameters to set navigation mode
-#define MINMEA_FIX_INTERVAL_PARAMETERS_COUNT 1      //!< Number of parameters to set position fix interval
-#define MINMEA_STANDBY_MODE_PARAMETERS_COUNT 1      //!< Number of parameters to set standby mode
 
 
 enum minmea_sentence_id {
@@ -69,6 +57,7 @@ enum minmea_sentence_id {
 
 // MTK NMEA Packet Protocol (extension messages of the NMEA packet protocol)
 enum minmea_pmtk_packet_type {
+    MINMEA_PMTK_UNKNOWN = 0,
     MINMEA_PMTK_CMD_HOT_START = 101,
     MINMEA_PMTK_CMD_WARM_START = 102,
     MINMEA_PMTK_CMD_COLD_START = 103,
@@ -98,25 +87,24 @@ struct minmea_time {
     int microseconds;
 };
 
-enum minmea_pmtk_ack_config_status {
-    MINMEA_PMTK_ACK_CONFIG_STATUS_INVALID = '0',
-    MINMEA_PMTK_ACK_CONFIG_STATUS_UNSUPPORTED = '1',
-    MINMEA_PMTK_ACK_CONFIG_STATUS_FAILED = '2',
-    MINMEA_PMTK_ACK_CONFIG_STATUS_SUCCESS = '3',
-};
-
 struct minmea_sentence_pmtk {
-    char type[MINMEA_PMTK_PACKET_TYPE_LENGTH];
+    enum minmea_pmtk_packet_type type;
+    char parameters[MINMEA_PMTK_PACKET_DATA_MAX_LENGTH];
     bool ack_expected;
     bool ack_received;
-    uint8_t parameters_count;
-    char **parameters;
     bool result;
 };
 
+enum minmea_pmtk_flag {
+    MINMEA_PMTK_FLAG_INVALID = 0,
+    MINMEA_PMTK_FLAG_UNSUPPORTED = 1,
+    MINMEA_PMTK_FLAG_FAILURE = 2,
+    MINMEA_PMTK_FLAG_SUCCESS = 3,
+};
+
 struct minmea_sentence_pmtk_ack {
-    char command[4];
-    char status;
+    enum minmea_pmtk_packet_type command;
+    enum minmea_pmtk_flag flag;
 };
 
 struct minmea_sentence_rmc {
@@ -245,18 +233,6 @@ struct minmea_nmea_output {
     int gsv_frequency;
 };
 
-struct minmea_navigation {
-    int mode;
-};
-
-struct minmea_position_fix {
-    int interval;
-};
-
-struct minmea_standby {
-    uint8_t mode;
-};
-
 /**
  * Calculate raw sentence checksum. Does not check sentence integrity.
  */
@@ -303,25 +279,10 @@ bool minmea_parse_gsv(struct minmea_sentence_gsv *frame, const char *sentence);
 bool minmea_parse_vtg(struct minmea_sentence_vtg *frame, const char *sentence);
 bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence);
 
-
-/*
- * Initialize pmtk message information based on the code
- */
-struct minmea_sentence_pmtk minmea_initialize_pmtk_message(enum minmea_pmtk_packet_type packet_type);
-
 /**
  * Serialize PMTK message from a Pmtk_message structure
  */
 void minmea_serialize_pmtk(struct minmea_sentence_pmtk pmtk_message, char *message);
-
-/*
- * Set parameters for PMTK commands serialization
- */
-void minmea_set_satellite_system_parameters(struct minmea_sentence_pmtk *message, struct minmea_satellite_system satellite_systems);
-void minmea_set_nmea_output_parameters(struct minmea_sentence_pmtk *message, struct minmea_nmea_output nmea_output);
-void minmea_set_navigation_parameters(struct minmea_sentence_pmtk *message, struct minmea_navigation navigation);
-void minmea_set_position_fix_parameters(struct minmea_sentence_pmtk *message, struct minmea_position_fix position_fix);
-void minmea_set_standby_parameters(struct minmea_sentence_pmtk *message, struct minmea_standby standby);
 
 /**
  * Convert GPS UTC date/time representation to a UNIX timestamp.
@@ -377,5 +338,3 @@ static inline float minmea_tocoord(struct minmea_float *f)
 #endif
 
 #endif /* MINMEA_H */
-
-/* vim: set ts=4 sw=4 et: */

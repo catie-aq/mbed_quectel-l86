@@ -1,10 +1,13 @@
-#include "l86.h"
+/*
+ * Copyright (c) 2020-2021, CATIE
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
+#include "l86.h"
 
 namespace {
 constexpr int LIMIT_SATELLITES = 4;                         //!< Max number of satellites in a view
 }
-
 
 L86::L86(BufferedSerial *uart)
 {
@@ -20,142 +23,79 @@ L86::L86(BufferedSerial *uart)
     start_receive();
 }
 
-
-
 bool L86::set_satellite_system(SatelliteSystems satellite_systems)
 {
-    minmea_sentence_pmtk message;
-    message = minmea_initialize_pmtk_message(MINMEA_PMTK_API_SET_GNSS_SEARCH_MODE);
-
-    struct minmea_satellite_system satellite_configuration;
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS))) {
-        satellite_configuration.gps = true;
-    } else {
-        satellite_configuration.gps = false;
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GLONASS))) {
-        satellite_configuration.glonass = true;
-    } else {
-        satellite_configuration.glonass = false;
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO))) {
-        satellite_configuration.galileo = true;
-    } else {
-        satellite_configuration.galileo = false;
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO_FULL))) {
-        satellite_configuration.galileo_full = true;
-    } else {
-        satellite_configuration.galileo_full = false;
-    }
-
-    if (satellite_systems.test(static_cast<size_t>(SatelliteSystem::BEIDOU))) {
-        satellite_configuration.beidou = true;
-    } else {
-        satellite_configuration.beidou = false;
-    }
-
-    minmea_set_satellite_system_parameters(&message, satellite_configuration);
+    minmea_sentence_pmtk message = {
+        MINMEA_PMTK_API_SET_GNSS_SEARCH_MODE, 0, true, false, false
+    };
+    sprintf(message.parameters, "%i,%i,%i,%i,%i",
+            satellite_systems.test(static_cast<size_t>(SatelliteSystem::GPS)),
+            satellite_systems.test(static_cast<size_t>(SatelliteSystem::GLONASS)),
+            satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO)),
+            satellite_systems.test(static_cast<size_t>(SatelliteSystem::GALILEO_FULL)),
+            satellite_systems.test(static_cast<size_t>(SatelliteSystem::BEIDOU)));
 
     return generate_and_send_pmtk_message(message);
 }
-
 
 bool L86::set_nmea_output_frequency(NmeaCommands nmea_commands, NmeaFrequency frequency)
 {
-    minmea_sentence_pmtk message;
-    message = minmea_initialize_pmtk_message(MINMEA_PMTK_API_SET_NMEA_OUTPUT);
+    minmea_sentence_pmtk message = {
+        MINMEA_PMTK_API_SET_NMEA_OUTPUT, 0, true, false, false
+    };
+    sprintf(message.parameters, "%i,%i,%i,%i,%i,%i,0,0,0,0,0,0,0,0,0,0,0,0,0",
+            nmea_commands.test(static_cast<size_t>(NmeaCommandType::GLL)) ? static_cast<int>(frequency) : 0,
+            nmea_commands.test(static_cast<size_t>(NmeaCommandType::RMC)) ? static_cast<int>(frequency) : 0,
+            nmea_commands.test(static_cast<size_t>(NmeaCommandType::VTG)) ? static_cast<int>(frequency) : 0,
+            nmea_commands.test(static_cast<size_t>(NmeaCommandType::GGA)) ? static_cast<int>(frequency) : 0,
+            nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSA)) ? static_cast<int>(frequency) : 0,
+            nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSV)) ? static_cast<int>(frequency) : 0);
 
-    struct minmea_nmea_output nmea_output_configuration;
-
-    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GLL))) {
-        nmea_output_configuration.gll_frequency = (int)frequency;
-    } else {
-        nmea_output_configuration.gll_frequency = 0;
-    }
-
-    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::RMC))) {
-        nmea_output_configuration.rmc_frequency = (int)frequency;
-    } else {
-        nmea_output_configuration.rmc_frequency = 0;
-    }
-
-    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::VTG))) {
-        nmea_output_configuration.vtg_frequency = (int)frequency;
-    } else {
-        nmea_output_configuration.vtg_frequency = 0;
-    }
-
-    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GGA))) {
-        nmea_output_configuration.gga_frequency = (int)frequency;
-    } else {
-        nmea_output_configuration.gga_frequency = 0;
-    }
-
-    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSA))) {
-        nmea_output_configuration.gsa_frequency = (int)frequency;
-    } else {
-        nmea_output_configuration.gsa_frequency = 0;
-    }
-
-    if (nmea_commands.test(static_cast<size_t>(NmeaCommandType::GSV))) {
-        nmea_output_configuration.gsv_frequency = (int)frequency;
-    } else {
-        nmea_output_configuration.gsv_frequency = 0;
-    }
-
-    minmea_set_nmea_output_parameters(&message, nmea_output_configuration);
     return generate_and_send_pmtk_message(message);
 }
 
-
 bool L86::set_navigation_mode(NavigationMode navigation_mode)
 {
-    minmea_sentence_pmtk message;
-    message = minmea_initialize_pmtk_message(MINMEA_PMTK_FR_MODE);
-
-    struct minmea_navigation navigation_configuration;
-    navigation_configuration.mode = (int)navigation_mode;
-    minmea_set_navigation_parameters(&message, navigation_configuration);
+    minmea_sentence_pmtk message = {
+        MINMEA_PMTK_FR_MODE, 0, true, false, false
+    };
+    sprintf(message.parameters, "%i", static_cast<int>(navigation_mode));
 
     return generate_and_send_pmtk_message(message);
 }
 
 bool L86::set_position_fix_interval(uint16_t interval)
 {
-    minmea_sentence_pmtk message;
-    message = minmea_initialize_pmtk_message(MINMEA_PMTK_API_SET_POS_FIX);
-
-    struct minmea_position_fix position_fix_parameters;
-    position_fix_parameters.interval = interval;
-    minmea_set_position_fix_parameters(&message, position_fix_parameters);
+    minmea_sentence_pmtk message = {
+        MINMEA_PMTK_API_SET_POS_FIX, 0, true, false, false
+    };
+    sprintf(message.parameters, "%u", interval);
 
     return generate_and_send_pmtk_message(message);
 }
 
 bool L86::start(StartMode start_mode)
 {
-    minmea_sentence_pmtk message;
+    minmea_sentence_pmtk message = {
+        MINMEA_PMTK_UNKNOWN, 0, false, false, false
+    };
     switch (start_mode) {
-        case StartMode::FULL_COLD_START:
-            message = minmea_initialize_pmtk_message(MINMEA_PMTK_CMD_FULL_COLD_START);
+        case StartMode::FULL_COLD_START: {
+            message.type = MINMEA_PMTK_CMD_FULL_COLD_START;
             break;
-
-        case StartMode::COLD_START:
-            message = minmea_initialize_pmtk_message(MINMEA_PMTK_CMD_COLD_START);
+        }
+        case StartMode::COLD_START: {
+            message.type = MINMEA_PMTK_CMD_COLD_START;
             break;
-
-        case StartMode::WARM_START:
-            message = minmea_initialize_pmtk_message(MINMEA_PMTK_CMD_WARM_START);
+        }
+        case StartMode::WARM_START: {
+            message.type = MINMEA_PMTK_CMD_WARM_START;
             break;
-
-        case StartMode::HOT_START:
-            message = minmea_initialize_pmtk_message(MINMEA_PMTK_CMD_HOT_START);
+        }
+        case StartMode::HOT_START: {
+            message.type = MINMEA_PMTK_CMD_HOT_START;
             break;
+        }
     }
 
     return generate_and_send_pmtk_message(message);
@@ -163,12 +103,10 @@ bool L86::start(StartMode start_mode)
 
 bool L86::standby_mode(StandbyMode standby_mode)
 {
-    minmea_sentence_pmtk message;
-    message = minmea_initialize_pmtk_message(MINMEA_PMTK_API_SET_PERIODIC_MODE);
-
-    struct minmea_standby standby_parameters;
-    standby_parameters.mode = (uint8_t)standby_mode;
-    minmea_set_standby_parameters(&message, standby_parameters);
+    minmea_sentence_pmtk message = {
+        MINMEA_PMTK_API_SET_PERIODIC_MODE, 0, true, false, false
+    };
+    sprintf(message.parameters, "%i", static_cast<int>(standby_mode));
 
     return generate_and_send_pmtk_message(message);
 }
@@ -293,9 +231,10 @@ void L86::parse_message(char *message)
         case MINMEA_SENTENCE_PMTK_ACK:
             struct minmea_sentence_pmtk_ack pmtk_ack_frame;
             if (minmea_parse_pmtk_ack(&pmtk_ack_frame, message)) {
-                if (!strcmp(_current_pmtk_message.type, pmtk_ack_frame.command)) {
+                
+                if (_current_pmtk_message.type == pmtk_ack_frame.command) {
                     _current_pmtk_message.ack_received = true;
-                    if (pmtk_ack_frame.status == MINMEA_PMTK_ACK_CONFIG_STATUS_SUCCESS) {
+                    if (pmtk_ack_frame.flag == MINMEA_PMTK_FLAG_SUCCESS) {
                         _current_pmtk_message.result = true;
                     } else {
                         _current_pmtk_message.result = false;
@@ -395,7 +334,6 @@ void L86::parse_message(char *message)
             break;
     }
 }
-
 
 void L86::start_receive()
 {
