@@ -9,7 +9,7 @@ namespace {
 constexpr int LIMIT_SATELLITES = 4;                         //!< Max number of satellites in a view
 }
 
-L86::L86(BufferedSerial *uart)
+L86::L86(UnbufferedSerial *uart)
 {
     _registered_satellite_count = 0;
     _uart = uart;
@@ -337,12 +337,12 @@ void L86::parse_message(char *message)
 
 void L86::start_receive()
 {
-    _uart->sigio(mbed_event_queue()->event(callback(this, &L86::get_received_message)));
+    _uart->attach(callback(this, &L86::get_received_message));
 }
 
 void L86::stop_receive()
 {
-    _uart->sigio(NULL);
+    _uart->attach(NULL);
 }
 
 void L86::set_positionning_mode(char c_positionning_mode)

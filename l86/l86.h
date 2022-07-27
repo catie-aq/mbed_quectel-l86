@@ -13,8 +13,6 @@
 #include <ctime>
 #include <bitset>
 
-#include "UnbufferedSerial.h"
-
 #include "minmea.h"
 
 #define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KMH
@@ -171,7 +169,7 @@ public:
     *
     *  \param uart
     */
-    L86(BufferedSerial *uart);
+    L86(UnbufferedSerial *uart);
 
     /*!
      *  Select a satellite system
@@ -247,7 +245,7 @@ public:
 
 private:
 
-    BufferedSerial *_uart;
+    UnbufferedSerial *_uart;
     minmea_sentence_pmtk _current_pmtk_message;
     int _registered_satellite_count;
     char _received_message[MINMEA_MAX_LENGTH];
