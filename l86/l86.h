@@ -214,11 +214,22 @@ public:
      */
     bool standby_mode(StandbyMode standby_mode);
 
+    /*!
+     *  Start receiving message from L86 module
+     *
+     */
+    void start_receive();
+
+    /*!
+     *  Stop receiving message from L86 module
+     */
+    void stop_receive();
+
     Satellite *satellites();
 
-    double latitude();
+    float latitude();
 
-    double longitude();
+    float longitude();
 
     double altitude();
 
@@ -263,17 +274,6 @@ private:
      *  \return true if pmtk message action is succesfully executed on the module else return false
      */
     bool generate_and_send_pmtk_message(minmea_sentence_pmtk message);
-
-    /*!
-     *  Start receiving message from L86 module
-     *
-     */
-    void start_receive();
-
-    /*!
-     *  Stop receiving message from L86 module
-     */
-    void stop_receive();
 
     /*!
      *  Callback called when the BufferedSerial RX file state changes
