@@ -13,8 +13,6 @@
 #include <ctime>
 #include <bitset>
 
-#include "UnbufferedSerial.h"
-
 #include "minmea.h"
 
 #define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KMH
@@ -171,7 +169,7 @@ public:
     *
     *  \param uart
     */
-    L86(BufferedSerial *uart);
+    L86(UnbufferedSerial *uart);
 
     /*!
      *  Select a satellite system
@@ -216,11 +214,22 @@ public:
      */
     bool standby_mode(StandbyMode standby_mode);
 
+    /*!
+     *  Start receiving message from L86 module
+     *
+     */
+    void start_receive();
+
+    /*!
+     *  Stop receiving message from L86 module
+     */
+    void stop_receive();
+
     Satellite *satellites();
 
-    double latitude();
+    float latitude();
 
-    double longitude();
+    float longitude();
 
     double altitude();
 
@@ -247,7 +256,7 @@ public:
 
 private:
 
-    BufferedSerial *_uart;
+    UnbufferedSerial *_uart;
     minmea_sentence_pmtk _current_pmtk_message;
     int _registered_satellite_count;
     char _received_message[MINMEA_MAX_LENGTH];
@@ -265,17 +274,6 @@ private:
      *  \return true if pmtk message action is succesfully executed on the module else return false
      */
     bool generate_and_send_pmtk_message(minmea_sentence_pmtk message);
-
-    /*!
-     *  Start receiving message from L86 module
-     *
-     */
-    void start_receive();
-
-    /*!
-     *  Stop receiving message from L86 module
-     */
-    void stop_receive();
 
     /*!
      *  Callback called when the BufferedSerial RX file state changes

@@ -9,7 +9,7 @@ namespace {
 constexpr int LIMIT_SATELLITES = 4;                         //!< Max number of satellites in a view
 }
 
-L86::L86(BufferedSerial *uart)
+L86::L86(UnbufferedSerial *uart)
 {
     _registered_satellite_count = 0;
     _uart = uart;
@@ -20,7 +20,6 @@ L86::L86(BufferedSerial *uart)
 
     _movement_informations.speed_kmh = 0.0;
     _movement_informations.speed_knots = 0.0;
-    start_receive();
 }
 
 bool L86::set_satellite_system(SatelliteSystems satellite_systems)
@@ -116,12 +115,12 @@ L86::Satellite *L86::satellites()
     return _satellites_informations.satellites;
 }
 
-double L86::latitude()
+float L86::latitude()
 {
     return _position_informations.latitude;
 }
 
-double L86::longitude()
+float L86::longitude()
 {
     return _position_informations.longitude;
 }
@@ -229,18 +228,6 @@ void L86::parse_message(char *message)
     int limit = LIMIT_SATELLITES;
     switch (minmea_sentence_id(message, false)) {
         case MINMEA_SENTENCE_PMTK_ACK:
-            struct minmea_sentence_pmtk_ack pmtk_ack_frame;
-            if (minmea_parse_pmtk_ack(&pmtk_ack_frame, message)) {
-                
-                if (_current_pmtk_message.type == pmtk_ack_frame.command) {
-                    _current_pmtk_message.ack_received = true;
-                    if (pmtk_ack_frame.flag == MINMEA_PMTK_FLAG_SUCCESS) {
-                        _current_pmtk_message.result = true;
-                    } else {
-                        _current_pmtk_message.result = false;
-                    }
-                }
-            }
             break;
 
         case MINMEA_SENTENCE_RMC:
@@ -337,12 +324,13 @@ void L86::parse_message(char *message)
 
 void L86::start_receive()
 {
-    _uart->sigio(mbed_event_queue()->event(callback(this, &L86::get_received_message)));
+    _uart->attach(callback(this, &L86::get_received_message));
 }
 
 void L86::stop_receive()
 {
-    _uart->sigio(NULL);
+    _uart->attach(NULL);
+    _uart->enable_output(0);
 }
 
 void L86::set_positionning_mode(char c_positionning_mode)
@@ -429,10 +417,18 @@ void L86::set_date(struct minmea_date date)
 
 void L86::set_longitude(minmea_float longitude)
 {
-    _position_informations.longitude = minmea_tocoord(&longitude);
+    if(minmea_tocoord(&longitude) == NAN){
+        _position_informations.longitude = (float)0.0;
+    }else{
+        _position_informations.longitude = minmea_tocoord(&longitude);
+    }
 }
 
 void L86::set_latitude(minmea_float latitude)
 {
-    _position_informations.latitude = minmea_tocoord(&latitude);
+    if(minmea_tocoord(&latitude) == NAN){
+        _position_informations.latitude = (float)0.0;
+    }else{
+        _position_informations.latitude = minmea_tocoord(&latitude);
+    }
 }
