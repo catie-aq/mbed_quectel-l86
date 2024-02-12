@@ -8,10 +8,10 @@
 
 #include "mbed.h"
 
+#include <bitset>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-#include <bitset>
 
 #include "minmea.h"
 
@@ -25,12 +25,9 @@
 #define MBED_CONF_L86_SPEED_UNIT SpeedUnit::KNOTS
 #endif
 
-
-class L86
-{
+class L86 {
 
 public:
-
     enum class PositionningMode {
         NO_FIX,
         AUTONOMOUS_GNSS_FIX,
@@ -85,7 +82,9 @@ public:
         FixStatusGGA fix_status;
     } Informations;
 
-    constexpr static int MAX_SATELLITES = 12;    //!< Max number of satellites which are communating with L86 GNSS module
+    constexpr static int MAX_SATELLITES
+            = 12; //!< Max number of satellites which are communating with L86 GNSS module
+
     typedef struct {
         int satellite_count;
         Mode mode;
@@ -165,10 +164,10 @@ public:
     typedef std::bitset<NMEA_COMMANDS_COUNT> NmeaCommands;
 
     /*!
-    *  Default L86 constructor
-    *
-    *  \param uart
-    */
+     *  Default L86 constructor
+     *
+     *  \param uart
+     */
     L86(UnbufferedSerial *uart);
 
     /*!
@@ -210,7 +209,8 @@ public:
     /*!
      *  Put the module in periodic standby mode
      *
-     *  \param standby_mode (normal, periodic backup, periodic standby, periodic backup, AlwaysLocate standby, AlwaysLocate backup)
+     *  \param standby_mode (normal, periodic backup, periodic standby, periodic backup,
+     * AlwaysLocate standby, AlwaysLocate backup)
      */
     bool standby_mode(StandbyMode standby_mode);
 
@@ -253,9 +253,7 @@ public:
 
     int registered_satellite_count();
 
-
 private:
-
     UnbufferedSerial *_uart;
     minmea_sentence_pmtk _current_pmtk_message;
     int _registered_satellite_count;
@@ -269,7 +267,8 @@ private:
     /*!
      *  Generate PMTK message and send it through serial communication
      *
-     *  \param message : PMTK message object which contains all necessary informations to send to the L86 module
+     *  \param message : PMTK message object which contains all necessary informations to send to
+     * the L86 module
      *
      *  \return true if pmtk message action is succesfully executed on the module else return false
      */
@@ -299,8 +298,6 @@ private:
     void set_latitude(minmea_float latitude);
 
     void parse_message(char *message);
-
-
 };
 
 #endif /* CATIE_SIXTRON_L86_H_ */
