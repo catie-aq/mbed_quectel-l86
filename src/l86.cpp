@@ -324,6 +324,12 @@ void L86::parse_message(char *message)
             // printf("\n -- Unknown command --> %s\n", message);
             break;
     }
+    strcpy(_last_nmea_sentence, message);
+}
+
+const char *L86::last_nmea_sentence()
+{
+    return _last_nmea_sentence;
 }
 
 void L86::start_receive()
@@ -412,11 +418,12 @@ void L86::set_time(struct minmea_time time)
     _global_informations.time.tm_sec = time.seconds;
 }
 
+
 void L86::set_date(struct minmea_date date)
 {
     _global_informations.time.tm_mday = date.day;
-    _global_informations.time.tm_mon = date.month;
-    _global_informations.time.tm_year = date.year;
+    _global_informations.time.tm_mon = date.month-1;
+    _global_informations.time.tm_year = date.year+100;
 }
 
 void L86::set_longitude(minmea_float longitude)

@@ -170,6 +170,8 @@ public:
      */
     L86(UnbufferedSerial *uart);
 
+    const char *last_nmea_sentence();
+
     /*!
      *  Select a satellite system
      *
@@ -263,6 +265,7 @@ private:
     Informations _global_informations;
     Satellites_info _satellites_informations;
     DilutionOfPrecision _dilution_of_precision;
+    char _last_nmea_sentence[MINMEA_MAX_LENGTH];
 
     /*!
      *  Generate PMTK message and send it through serial communication
