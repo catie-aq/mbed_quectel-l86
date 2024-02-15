@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "minmea.h"
@@ -59,7 +59,7 @@ bool minmea_check(const char *sentence, bool strict)
     }
 
     // The optional checksum is an XOR of all bytes between "$" and "*".
-    while (*sentence && *sentence != '*' && isprint((unsigned char) *sentence)) {
+    while (*sentence && *sentence != '*' && isprint((unsigned char)*sentence)) {
         checksum ^= *sentence++;
     }
 
@@ -96,7 +96,7 @@ bool minmea_check(const char *sentence, bool strict)
 
 static inline bool minmea_isfield(char c)
 {
-    return isprint((unsigned char) c) && c != ',' && c != '*';
+    return isprint((unsigned char)c) && c != ',' && c != '*';
 }
 
 bool minmea_scan(const char *sentence, const char *format, ...)
@@ -107,18 +107,18 @@ bool minmea_scan(const char *sentence, const char *format, ...)
     va_start(ap, format);
 
     const char *field = sentence;
-#define next_field() \
-    do { \
-        /* Progress to the next field. */ \
-        while (minmea_isfield(*sentence)) \
-            sentence++; \
-        /* Make sure there is a field there. */ \
-        if (*sentence == ',') { \
-            sentence++; \
-            field = sentence; \
-        } else { \
-            field = NULL; \
-        } \
+#define next_field()                                                                               \
+    do {                                                                                           \
+        /* Progress to the next field. */                                                          \
+        while (minmea_isfield(*sentence))                                                          \
+            sentence++;                                                                            \
+        /* Make sure there is a field there. */                                                    \
+        if (*sentence == ',') {                                                                    \
+            sentence++;                                                                            \
+            field = sentence;                                                                      \
+        } else {                                                                                   \
+            field = NULL;                                                                          \
+        }                                                                                          \
     } while (0)
 
     while (*format) {
@@ -144,8 +144,7 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                 }
 
                 *va_arg(ap, char *) = value;
-            }
-            break;
+            } break;
 
             case 'd': { // Single character direction field (int).
                 int value = 0;
@@ -166,8 +165,7 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                 }
 
                 *va_arg(ap, int *) = value;
-            }
-            break;
+            } break;
 
             case 'f': { // Fractional value with scale (struct minmea_float).
                 int sign = 0;
@@ -180,7 +178,7 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                             sign = 1;
                         } else if (*field == '-' && !sign && value == -1) {
                             sign = -1;
-                        } else if (isdigit((unsigned char) *field)) {
+                        } else if (isdigit((unsigned char)*field)) {
                             int digit = *field - '0';
                             if (value == -1) {
                                 value = 0;
@@ -230,11 +228,8 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                     value *= sign;
                 }
 
-                *va_arg(ap, struct minmea_float *) = (struct minmea_float) {
-                    value, scale
-                };
-            }
-            break;
+                *va_arg(ap, struct minmea_float *) = (struct minmea_float) { value, scale };
+            } break;
 
             case 'i': { // Integer value, default 0 (int).
                 int value = 0;
@@ -248,8 +243,7 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                 }
 
                 *va_arg(ap, int *) = value;
-            }
-            break;
+            } break;
 
             case 's': { // String value (char *).
                 char *buf = va_arg(ap, char *);
@@ -261,8 +255,7 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                 }
 
                 *buf = '\0';
-            }
-            break;
+            } break;
 
             case 't': { // NMEA talker+sentence identifier (char *).
                 // This field is always mandatory.
@@ -288,8 +281,7 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                     buf[7] = '\0';
                 }
 
-            }
-            break;
+            } break;
 
             case 'D': { // Date (int, int, int), -1 if empty.
                 struct minmea_date *date = va_arg(ap, struct minmea_date *);
@@ -299,13 +291,13 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                 if (field && minmea_isfield(*field)) {
                     // Always six digits.
                     for (int f = 0; f < 6; f++)
-                        if (!isdigit((unsigned char) field[f])) {
+                        if (!isdigit((unsigned char)field[f])) {
                             goto parse_error;
                         }
 
-                    char dArr[] = {field[0], field[1], '\0'};
-                    char mArr[] = {field[2], field[3], '\0'};
-                    char yArr[] = {field[4], field[5], '\0'};
+                    char dArr[] = { field[0], field[1], '\0' };
+                    char mArr[] = { field[2], field[3], '\0' };
+                    char yArr[] = { field[4], field[5], '\0' };
                     d = strtol(dArr, NULL, 10);
                     m = strtol(mArr, NULL, 10);
                     y = strtol(yArr, NULL, 10);
@@ -314,8 +306,7 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                 date->day = d;
                 date->month = m;
                 date->year = y;
-            }
-            break;
+            } break;
 
             case 'T': { // Time (int, int, int, int), -1 if empty.
                 struct minmea_time *time_ = va_arg(ap, struct minmea_time *);
@@ -325,13 +316,13 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                 if (field && minmea_isfield(*field)) {
                     // Minimum required: integer time.
                     for (int f = 0; f < 6; f++)
-                        if (!isdigit((unsigned char) field[f])) {
+                        if (!isdigit((unsigned char)field[f])) {
                             goto parse_error;
                         }
 
-                    char hArr[] = {field[0], field[1], '\0'};
-                    char iArr[] = {field[2], field[3], '\0'};
-                    char sArr[] = {field[4], field[5], '\0'};
+                    char hArr[] = { field[0], field[1], '\0' };
+                    char iArr[] = { field[2], field[3], '\0' };
+                    char sArr[] = { field[4], field[5], '\0' };
                     h = strtol(hArr, NULL, 10);
                     i = strtol(iArr, NULL, 10);
                     s = strtol(sArr, NULL, 10);
@@ -341,7 +332,7 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                     if (*field++ == '.') {
                         uint32_t value = 0;
                         uint32_t scale = 1000000LU;
-                        while (isdigit((unsigned char) *field) && scale > 1) {
+                        while (isdigit((unsigned char)*field) && scale > 1) {
                             value = (value * 10) + (*field++ - '0');
                             scale /= 10;
                         }
@@ -355,8 +346,7 @@ bool minmea_scan(const char *sentence, const char *format, ...)
                 time_->minutes = i;
                 time_->seconds = s;
                 time_->microseconds = u;
-            }
-            break;
+            } break;
 
             case '_': { // Ignore the field.
             } break;
@@ -436,10 +426,7 @@ bool minmea_parse_pmtk_ack(struct minmea_sentence_pmtk_ack *frame, const char *s
 {
     // $PMTK001,314,3*36
     char type[8];
-    if (!minmea_scan(sentence, "tii",
-                    type,
-                    &frame->command,
-                    &frame->flag)) {
+    if (!minmea_scan(sentence, "tii", type, &frame->command, &frame->flag)) {
         return false;
     }
     if (strcmp(type, "PMTK001")) {
@@ -457,16 +444,20 @@ bool minmea_parse_rmc(struct minmea_sentence_rmc *frame, const char *sentence)
     int latitude_direction;
     int longitude_direction;
     int variation_direction;
-    if (!minmea_scan(sentence, "tTcfdfdffDfd",
-                    type,
-                    &frame->time,
-                    &validity,
-                    &frame->latitude, &latitude_direction,
-                    &frame->longitude, &longitude_direction,
-                    &frame->speed,
-                    &frame->course,
-                    &frame->date,
-                    &frame->variation, &variation_direction)) {
+    if (!minmea_scan(sentence,
+                "tTcfdfdffDfd",
+                type,
+                &frame->time,
+                &validity,
+                &frame->latitude,
+                &latitude_direction,
+                &frame->longitude,
+                &longitude_direction,
+                &frame->speed,
+                &frame->course,
+                &frame->date,
+                &frame->variation,
+                &variation_direction)) {
         return false;
     }
     if (strcmp(type + 2, "RMC")) {
@@ -488,17 +479,22 @@ bool minmea_parse_gga(struct minmea_sentence_gga *frame, const char *sentence)
     int latitude_direction;
     int longitude_direction;
 
-    if (!minmea_scan(sentence, "tTfdfdiiffcfcf_",
-                    type,
-                    &frame->time,
-                    &frame->latitude, &latitude_direction,
-                    &frame->longitude, &longitude_direction,
-                    &frame->fix_quality,
-                    &frame->satellites_tracked,
-                    &frame->hdop,
-                    &frame->altitude, &frame->altitude_units,
-                    &frame->height, &frame->height_units,
-                    &frame->dgps_age)) {
+    if (!minmea_scan(sentence,
+                "tTfdfdiiffcfcf_",
+                type,
+                &frame->time,
+                &frame->latitude,
+                &latitude_direction,
+                &frame->longitude,
+                &longitude_direction,
+                &frame->fix_quality,
+                &frame->satellites_tracked,
+                &frame->hdop,
+                &frame->altitude,
+                &frame->altitude_units,
+                &frame->height,
+                &frame->height_units,
+                &frame->dgps_age)) {
         return false;
     }
     if (strcmp(type + 2, "GGA")) {
@@ -516,25 +512,26 @@ bool minmea_parse_gsa(struct minmea_sentence_gsa *frame, const char *sentence)
     // $GPGSA,A,3,04,05,,09,12,,,24,,,,,2.5,1.3,2.1*39
     char type[6];
 
-    if (!minmea_scan(sentence, "tciiiiiiiiiiiiifff",
-                    type,
-                    &frame->mode,
-                    &frame->fix_type,
-                    &frame->sats[0],
-                    &frame->sats[1],
-                    &frame->sats[2],
-                    &frame->sats[3],
-                    &frame->sats[4],
-                    &frame->sats[5],
-                    &frame->sats[6],
-                    &frame->sats[7],
-                    &frame->sats[8],
-                    &frame->sats[9],
-                    &frame->sats[10],
-                    &frame->sats[11],
-                    &frame->pdop,
-                    &frame->hdop,
-                    &frame->vdop)) {
+    if (!minmea_scan(sentence,
+                "tciiiiiiiiiiiiifff",
+                type,
+                &frame->mode,
+                &frame->fix_type,
+                &frame->sats[0],
+                &frame->sats[1],
+                &frame->sats[2],
+                &frame->sats[3],
+                &frame->sats[4],
+                &frame->sats[5],
+                &frame->sats[6],
+                &frame->sats[7],
+                &frame->sats[8],
+                &frame->sats[9],
+                &frame->sats[10],
+                &frame->sats[11],
+                &frame->pdop,
+                &frame->hdop,
+                &frame->vdop)) {
         return false;
     }
     if (strcmp(type + 2, "GSA")) {
@@ -551,13 +548,16 @@ bool minmea_parse_gll(struct minmea_sentence_gll *frame, const char *sentence)
     int latitude_direction;
     int longitude_direction;
 
-    if (!minmea_scan(sentence, "tfdfdTc;c",
-                    type,
-                    &frame->latitude, &latitude_direction,
-                    &frame->longitude, &longitude_direction,
-                    &frame->time,
-                    &frame->status,
-                    &frame->mode)) {
+    if (!minmea_scan(sentence,
+                "tfdfdTc;c",
+                type,
+                &frame->latitude,
+                &latitude_direction,
+                &frame->longitude,
+                &longitude_direction,
+                &frame->time,
+                &frame->status,
+                &frame->mode)) {
         return false;
     }
     if (strcmp(type + 2, "GLL")) {
@@ -575,16 +575,17 @@ bool minmea_parse_gst(struct minmea_sentence_gst *frame, const char *sentence)
     // $GPGST,024603.00,3.2,6.6,4.7,47.3,5.8,5.6,22.0*58
     char type[6];
 
-    if (!minmea_scan(sentence, "tTfffffff",
-                    type,
-                    &frame->time,
-                    &frame->rms_deviation,
-                    &frame->semi_major_deviation,
-                    &frame->semi_minor_deviation,
-                    &frame->semi_major_orientation,
-                    &frame->latitude_error_deviation,
-                    &frame->longitude_error_deviation,
-                    &frame->altitude_error_deviation)) {
+    if (!minmea_scan(sentence,
+                "tTfffffff",
+                type,
+                &frame->time,
+                &frame->rms_deviation,
+                &frame->semi_major_deviation,
+                &frame->semi_minor_deviation,
+                &frame->semi_major_orientation,
+                &frame->latitude_error_deviation,
+                &frame->longitude_error_deviation,
+                &frame->altitude_error_deviation)) {
         return false;
     }
     if (strcmp(type + 2, "GST")) {
@@ -603,28 +604,28 @@ bool minmea_parse_gsv(struct minmea_sentence_gsv *frame, const char *sentence)
     // $GPGSV,4,4,13*7B
     char type[6];
 
-    if (!minmea_scan(sentence, "tiii;iiiiiiiiiiiiiiii",
-                    type,
-                    &frame->total_msgs,
-                    &frame->msg_nr,
-                    &frame->total_sats,
-                    &frame->sats[0].nr,
-                    &frame->sats[0].elevation,
-                    &frame->sats[0].azimuth,
-                    &frame->sats[0].snr,
-                    &frame->sats[1].nr,
-                    &frame->sats[1].elevation,
-                    &frame->sats[1].azimuth,
-                    &frame->sats[1].snr,
-                    &frame->sats[2].nr,
-                    &frame->sats[2].elevation,
-                    &frame->sats[2].azimuth,
-                    &frame->sats[2].snr,
-                    &frame->sats[3].nr,
-                    &frame->sats[3].elevation,
-                    &frame->sats[3].azimuth,
-                    &frame->sats[3].snr
-            )) {
+    if (!minmea_scan(sentence,
+                "tiii;iiiiiiiiiiiiiiii",
+                type,
+                &frame->total_msgs,
+                &frame->msg_nr,
+                &frame->total_sats,
+                &frame->sats[0].nr,
+                &frame->sats[0].elevation,
+                &frame->sats[0].azimuth,
+                &frame->sats[0].snr,
+                &frame->sats[1].nr,
+                &frame->sats[1].elevation,
+                &frame->sats[1].azimuth,
+                &frame->sats[1].snr,
+                &frame->sats[2].nr,
+                &frame->sats[2].elevation,
+                &frame->sats[2].azimuth,
+                &frame->sats[2].snr,
+                &frame->sats[3].nr,
+                &frame->sats[3].elevation,
+                &frame->sats[3].azimuth,
+                &frame->sats[3].snr)) {
         return false;
     }
     if (strcmp(type + 2, "GSV")) {
@@ -643,27 +644,25 @@ bool minmea_parse_vtg(struct minmea_sentence_vtg *frame, const char *sentence)
     char type[6];
     char c_true, c_magnetic, c_knots, c_kph, c_faa_mode;
 
-    if (!minmea_scan(sentence, "tfcfcfcfc;c",
-                    type,
-                    &frame->true_track_degrees,
-                    &c_true,
-                    &frame->magnetic_track_degrees,
-                    &c_magnetic,
-                    &frame->speed_knots,
-                    &c_knots,
-                    &frame->speed_kph,
-                    &c_kph,
-                    &c_faa_mode)) {
+    if (!minmea_scan(sentence,
+                "tfcfcfcfc;c",
+                type,
+                &frame->true_track_degrees,
+                &c_true,
+                &frame->magnetic_track_degrees,
+                &c_magnetic,
+                &frame->speed_knots,
+                &c_knots,
+                &frame->speed_kph,
+                &c_kph,
+                &c_faa_mode)) {
         return false;
     }
     if (strcmp(type + 2, "VTG")) {
         return false;
     }
     // check chars
-    if (c_true != 'T' ||
-            c_magnetic != 'M' ||
-            c_knots != 'N' ||
-            c_kph != 'K') {
+    if (c_true != 'T' || c_magnetic != 'M' || c_knots != 'N' || c_kph != 'K') {
         return false;
     }
     frame->faa_mode = (enum minmea_faa_mode)c_faa_mode;
@@ -676,14 +675,15 @@ bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence)
     // $GPZDA,201530.00,04,07,2002,00,00*60
     char type[6];
 
-    if (!minmea_scan(sentence, "tTiiiii",
-                    type,
-                    &frame->time,
-                    &frame->date.day,
-                    &frame->date.month,
-                    &frame->date.year,
-                    &frame->hour_offset,
-                    &frame->minute_offset)) {
+    if (!minmea_scan(sentence,
+                "tTiiiii",
+                type,
+                &frame->time,
+                &frame->date.day,
+                &frame->date.month,
+                &frame->date.year,
+                &frame->hour_offset,
+                &frame->minute_offset)) {
         return false;
     }
     if (strcmp(type + 2, "ZDA")) {
@@ -691,9 +691,7 @@ bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence)
     }
 
     // check offsets
-    if (abs(frame->hour_offset) > 13 ||
-            frame->minute_offset > 59 ||
-            frame->minute_offset < 0) {
+    if (abs(frame->hour_offset) > 13 || frame->minute_offset > 59 || frame->minute_offset < 0) {
         return false;
     }
 
@@ -703,12 +701,12 @@ bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence)
 void minmea_serialize_pmtk(struct minmea_sentence_pmtk pmtk_message, char *buffer)
 {
     char *append = buffer;
-    append += sprintf(append, "$PMTK%03i,%s*",
-            pmtk_message.type, pmtk_message.parameters);
+    append += sprintf(append, "$PMTK%03i,%s*", pmtk_message.type, pmtk_message.parameters);
     append += sprintf(append, "%02X\r\n", minmea_checksum(buffer));
 }
 
-int minmea_gettime(struct timespec *ts, const struct minmea_date *date, const struct minmea_time *time_)
+int minmea_gettime(
+        struct timespec *ts, const struct minmea_date *date, const struct minmea_time *time_)
 {
     if (date->year == -1 || time_->hours == -1) {
         return -1;
@@ -717,11 +715,11 @@ int minmea_gettime(struct timespec *ts, const struct minmea_date *date, const st
     struct tm tm;
     memset(&tm, 0, sizeof(tm));
     if (date->year < 80) {
-        tm.tm_year = 2000 + date->year - 1900;  // 2000-2079
+        tm.tm_year = 2000 + date->year - 1900; // 2000-2079
     } else if (date->year >= 1900) {
         tm.tm_year = date->year - 1900; // 4 digit year, use directly
     } else {
-        tm.tm_year = date->year;    // 1980-1999
+        tm.tm_year = date->year; // 1980-1999
     }
     tm.tm_mon = date->month - 1;
     tm.tm_mday = date->day;
@@ -730,7 +728,7 @@ int minmea_gettime(struct timespec *ts, const struct minmea_date *date, const st
     tm.tm_sec = time_->seconds;
 
     time_t timestamp = timegm(&tm); /* See README.md if your system lacks timegm(). */
-    if (timestamp != (time_t) -1) {
+    if (timestamp != (time_t)-1) {
         ts->tv_sec = timestamp;
         ts->tv_nsec = time_->microseconds * 1000;
         return 0;

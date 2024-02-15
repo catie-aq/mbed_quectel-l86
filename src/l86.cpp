@@ -418,14 +418,12 @@ void L86::set_time(struct minmea_time time)
     _global_informations.time.tm_sec = time.seconds;
 }
 
-
 void L86::set_date(struct minmea_date date)
 {
     _global_informations.time.tm_mday = date.day;
-    _global_informations.time.tm_mon = date.month-1;
-    _global_informations.time.tm_year = date.year+100;
+    _global_informations.time.tm_mon = date.month - 1; // Month in struct tm is 0-indexed
+    _global_informations.time.tm_year = date.year + 100; // Adding 100 to the year to offset it from 1900
 }
-
 void L86::set_longitude(minmea_float longitude)
 {
     if (minmea_tocoord(&longitude) == NAN) {

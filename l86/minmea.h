@@ -10,35 +10,33 @@
 extern "C" {
 #endif
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <errno.h>
-#include <time.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <time.h>
 
+#define MINMEA_GPS_FLAG 0 //!< GPS flag parameter index
+#define MINMEA_GLONASS_FLAG 1 //!< GLONASS flag parameter index
+#define MINMEA_GALILEO_FLAG 2 //!< GALILEO flag parameter index
+#define MINMEA_GALILEO_FULL_FLAG 3 //!< GALILEO FULL flag parameter index
+#define MINMEA_BEIDOU_FLAG 4 //!< BEIDOU flag parameter index
 
-#define MINMEA_GPS_FLAG 0                           //!< GPS flag parameter index
-#define MINMEA_GLONASS_FLAG 1                       //!< GLONASS flag parameter index
-#define MINMEA_GALILEO_FLAG 2                       //!< GALILEO flag parameter index
-#define MINMEA_GALILEO_FULL_FLAG 3                  //!< GALILEO FULL flag parameter index
-#define MINMEA_BEIDOU_FLAG 4                        //!< BEIDOU flag parameter index
+#define MINMEA_GLL_FREQUENCY 0 //!< GLL frequency parameter index
+#define MINMEA_RMC_FREQUENCY 1 //!< RMC frequency parameter index
+#define MINMEA_VTG_FREQUENCY 2 //!< VTG frequency parameter index
+#define MINMEA_GGA_FREQUENCY 3 //!< GGA frequency parameter index
+#define MINMEA_GSA_FREQUENCY 4 //!< GSA frequency parameter index
+#define MINMEA_GSV_FREQUENCY 5 //!< GSV frequency parameter index
 
-#define MINMEA_GLL_FREQUENCY 0                      //!< GLL frequency parameter index
-#define MINMEA_RMC_FREQUENCY 1                      //!< RMC frequency parameter index
-#define MINMEA_VTG_FREQUENCY 2                      //!< VTG frequency parameter index
-#define MINMEA_GGA_FREQUENCY 3                      //!< GGA frequency parameter index
-#define MINMEA_GSA_FREQUENCY 4                      //!< GSA frequency parameter index
-#define MINMEA_GSV_FREQUENCY 5                      //!< GSV frequency parameter index
+#define MINMEA_NAVIGATION_MODE 0 //!< Navigation mode parameter index
 
-#define MINMEA_NAVIGATION_MODE 0                    //!< Navigation mode parameter index
+#define MINMEA_STANDBY_MODE 0 //!< Standby mode parameter index
 
-#define MINMEA_STANDBY_MODE 0                       //!< Standby mode parameter index
-
-#define MINMEA_PMTK_MAX_LENGTH 100                  //!< Maximal Pmtk packet length
-#define MINMEA_PMTK_PACKET_DATA_MAX_LENGTH 96       //!< Max PMTK packet data length
-#define MINMEA_MAX_LENGTH 120                       //!< Maximal nmea packet length
-
+#define MINMEA_PMTK_MAX_LENGTH 100 //!< Maximal Pmtk packet length
+#define MINMEA_PMTK_PACKET_DATA_MAX_LENGTH 96 //!< Max PMTK packet data length
+#define MINMEA_MAX_LENGTH 120 //!< Maximal nmea packet length
 
 enum minmea_sentence_id {
     MINMEA_INVALID = -1,
@@ -287,7 +285,8 @@ void minmea_serialize_pmtk(struct minmea_sentence_pmtk pmtk_message, char *messa
 /**
  * Convert GPS UTC date/time representation to a UNIX timestamp.
  */
-int minmea_gettime(struct timespec *ts, const struct minmea_date *date, const struct minmea_time *time_);
+int minmea_gettime(
+        struct timespec *ts, const struct minmea_date *date, const struct minmea_time *time_);
 
 /**
  * Rescale a fixed-point value to a different scale. Rounds towards zero.
@@ -301,7 +300,8 @@ static inline int_least32_t minmea_rescale(struct minmea_float *f, int_least32_t
         return f->value;
     }
     if (f->scale > new_scale) {
-        return (f->value + ((f->value > 0) - (f->value < 0)) * f->scale / new_scale / 2) / (f->scale / new_scale);
+        return (f->value + ((f->value > 0) - (f->value < 0)) * f->scale / new_scale / 2)
+                / (f->scale / new_scale);
     } else {
         return f->value * (new_scale / f->scale);
     }
@@ -316,7 +316,7 @@ static inline float minmea_tofloat(struct minmea_float *f)
     if (f->scale == 0) {
         return NAN;
     }
-    return (float) f->value / (float) f->scale;
+    return (float)f->value / (float)f->scale;
 }
 
 /**
@@ -330,7 +330,7 @@ static inline float minmea_tocoord(struct minmea_float *f)
     }
     int_least32_t degrees = f->value / (f->scale * 100);
     int_least32_t minutes = f->value % (f->scale * 100);
-    return (float) degrees + (float) minutes / (60 * f->scale);
+    return (float)degrees + (float)minutes / (60 * f->scale);
 }
 
 #ifdef __cplusplus
