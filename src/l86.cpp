@@ -324,12 +324,6 @@ void L86::parse_message(char *message)
             // printf("\n -- Unknown command --> %s\n", message);
             break;
     }
-    strcpy(_last_nmea_sentence, message);
-}
-
-const char *L86::last_nmea_sentence()
-{
-    return _last_nmea_sentence;
 }
 
 void L86::start_receive()
